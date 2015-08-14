@@ -297,7 +297,7 @@ public class AuthTicketFilter implements Filter {
             if(unauthUri != null) {
                httpResponse.sendRedirect(formatUrl(httpRequest, unauthUri));
             } else {
-               processFailure(httpRequest, httpResponse, chain);
+               httpResponse.sendRedirect(formatUrl(httpRequest, authUri));
             }
          } catch(Exception e) {
             processFailure(httpRequest, httpResponse, chain);
