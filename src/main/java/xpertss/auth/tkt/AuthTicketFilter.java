@@ -23,7 +23,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collections;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static xpertss.auth.tkt.DigestAlgorithm.*;
@@ -72,7 +71,7 @@ import static xpertss.proximo.Proximo.doReturn;
  *
  *    <dt>TKTAuthLoginURL &lt;url&gt;</dt>
  *    <dd>Standard URL to which unauthenticated users are redirected. This is a required
- *        directive unless you are using guest mode via 'TKTAuthGuestLogin on'. e.g.
+ *        directive. e.g.
  *        <p/>
  *        <pre>TKTAuthLoginURL https://www.example.com/auth/login.cgi</pre>
  *    </dd>
@@ -242,8 +241,6 @@ public class AuthTicketFilter implements Filter {
 
       if(!Strings.isEmpty(conf.getInitParameter("TKTAuthToken"))) {
          config.setTokens(Sets.of(conf.getInitParameter("TKTAuthToken").split("\\s*,\\s*")));
-      } else {
-         config.setTokens(Collections.<String>emptySet());
       }
 
       config.setDigestAlgorithm(Enums.valueOf(DigestAlgorithm.class, conf.getInitParameter("TKTAuthDigestType"), MD5));
@@ -257,7 +254,7 @@ public class AuthTicketFilter implements Filter {
       backArgName = ifEmpty(conf.getInitParameter("TKTAuthBackArgName"), "back");
 
 
-      authUri = parseUri(conf.getInitParameter("TKTAuthLoginURL"), !allowGuests);
+      authUri = parseUri(conf.getInitParameter("TKTAuthLoginURL"), true);
       timeoutUri = parseUri(conf.getInitParameter("TKTAuthTimeoutURL"), false);
       unauthUri = parseUri(conf.getInitParameter("TKTAuthUnauthURL"), false);
       postUri = parseUri(conf.getInitParameter("TKTAuthPostTimeoutURL"), false);
@@ -287,14 +284,14 @@ public class AuthTicketFilter implements Filter {
             doReturn(ticket.getUserData()).when(proxy).getAttribute(eq("TKTAuthUserData"));
             chain.doFilter(proxy, response);
          } catch(ExpiredTicketException e) {
-            if((guestFallback && allowGuests) || timeoutUri == null) {
+            if(guestFallback && allowGuests) {
                processFailure(httpRequest, httpResponse, chain);
+            } else if(postUri != null && httpRequest.getMethod().equals("POST")) {
+               httpResponse.sendRedirect(formatUrl(httpRequest, postUri));
+            } else if(timeoutUri != null) {
+               httpResponse.sendRedirect(formatUrl(httpRequest, timeoutUri));
             } else {
-               if(httpRequest.getMethod().equals("POST")) {
-                  httpResponse.sendRedirect(formatUrl(httpRequest, postUri));
-               } else {
-                  httpResponse.sendRedirect(formatUrl(httpRequest, timeoutUri));
-               }
+               httpResponse.sendRedirect(formatUrl(httpRequest, authUri));
             }
          } catch(TokenMissingException e) {
             if(unauthUri != null) {

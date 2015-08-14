@@ -3,6 +3,7 @@ package xpertss.auth.tkt;
 
 import xpertss.lang.Objects;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -12,7 +13,7 @@ import java.util.TreeSet;
 public class AuthTicketConfig {
 
    private DigestAlgorithm digestAlg = DigestAlgorithm.MD5;
-   private Set<String> tokens = new TreeSet<>();
+   private Set<String> tokens = Collections.emptySet();
    private String cookieName = "auth_tkt";
    private boolean ignoreIP = false;
    private long timeout = 7200;
