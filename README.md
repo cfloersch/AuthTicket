@@ -23,8 +23,8 @@ Simple Usage:
 
 Then you'll need to map the filter to a path like:
 ```
-<servlet-mapping>
-   <servlet-name>AuthTicket</servlet-name>
+<filter-mapping>
+   <filter-name>AuthTicket</filter-name>
    <url-pattern>/simulcast/*.do</url-pattern>
-</servlet-mapping>
+</filter-mapping>
 ```
