@@ -1,7 +1,9 @@
 package xpertss.auth.tkt;
 
 
-import java.util.Objects;
+import xpertss.lang.Objects;
+
+import java.util.Set;
 
 /**
  *
@@ -9,21 +11,33 @@ import java.util.Objects;
 public class AuthTicketConfig {
 
    private String cookieName = "auth_tkt";
-   private boolean ignoreIP = true;
-   private long timeout = 0;
+   private boolean ignoreIP = false;
+   private long timeout = 3600 * 2;
+   private DigestAlgorithm digestAlg;
+   private Set<String> tokens;
    private String secret;
-   private String token;
 
 
    public AuthTicketConfig(String secret)
    {
-      this.secret = Objects.requireNonNull(secret);
+      this.secret = Objects.notNull(secret, "secret");
    }
 
    public String getSecret() {
       return secret;
    }
 
+
+
+   public DigestAlgorithm getDigestAlgorithm()
+   {
+      return digestAlg;
+   }
+
+   public void setDigestAlgorithm(DigestAlgorithm digestAlg)
+   {
+      this.digestAlg = digestAlg;
+   }
 
 
 
@@ -62,13 +76,12 @@ public class AuthTicketConfig {
 
 
 
-
-   public String getToken() {
-      return token;
+   public Set<String> getTokens() {
+      return tokens;
    }
 
-   public void setToken(String token) {
-      this.token = token;
+   public void setTokens(Set<String> tokens) {
+      this.tokens = tokens;
    }
 
 }

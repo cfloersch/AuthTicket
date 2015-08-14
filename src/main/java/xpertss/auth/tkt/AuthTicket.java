@@ -3,17 +3,17 @@ package xpertss.auth.tkt;
 
 
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
+import xpertss.lang.Bytes;
+import xpertss.lang.Objects;
+import xpertss.lang.Strings;
+import xpertss.util.Sets;
 
-import static xpertss.lang.Bytes.fromHexString;
-import static xpertss.lang.Bytes.toHexString;
+import java.util.Collections;
+import java.util.Set;
+import java.util.TreeSet;
+
 
 /**
- * Docs
- *    https://github.com/gavincarr/mod_auth_tkt
  *
  * 1.5 The basic format of the ticket / authentication cookie value is as follows:
  *
@@ -44,25 +44,25 @@ import static xpertss.lang.Bytes.toHexString;
  */
 public class AuthTicket {
 
-   private static final ThreadLocal<MessageDigest> digesters = new ThreadLocal<MessageDigest>() {
-      protected MessageDigest initialValue() {
-         try { return MessageDigest.getInstance("MD5"); } catch(NoSuchAlgorithmException e) { throw new Error("No MD% Algorithm???"); }
-      }
-   };
 
+   private Set<String> tokens;
 
    private final byte[] checksum;
    private final long timestamp;
-   private String uid;
-   private String tokens;
-   private String userData;
+   private final String uid;
+   private final String userData;
+   private final String tokenData;
 
 
 
-   private AuthTicket(byte[] checksum, long timestamp)
+   private AuthTicket(byte[] checksum, long ts, String uid, String token, String data)
    {
-      this.checksum = checksum;
-      this.timestamp = timestamp;
+      this.checksum = Bytes.notEmpty(checksum, "checksum");
+      this.userData = Objects.notNull(data, "data");
+      this.uid = Strings.notEmpty(uid, "uid");
+      this.tokens = tokens(token);
+      this.tokenData = token;
+      this.timestamp = ts;
    }
 
 
@@ -81,9 +81,20 @@ public class AuthTicket {
       return uid;
    }
 
-   public String[] getTokens()
+   public String getTokens()
    {
-      return (tokens != null) ? tokens.split("\\s*,\\s*") : new String[0];
+      return tokenData;
+   }
+
+
+   public boolean contains(String token)
+   {
+      return tokens.contains(token);
+   }
+
+   public boolean containsAny(Set<String> tokens)
+   {
+      return tokens.size() <= 0 || !Sets.intersection(this.tokens, tokens).isEmpty();
    }
 
 
@@ -96,90 +107,29 @@ public class AuthTicket {
 
    public boolean isExpired(long timeout)
    {
+      if(timeout <= 0) return false;
       long currentTime = System.currentTimeMillis() / 1000;
       return timestamp + timeout >= currentTime;
    }
 
-   public boolean verifyChecksum(String secret, byte[] remoteAddress)
+
+
+
+
+   public static AuthTicket create(byte[] checksum, long ts, String uid, String tokens, String data)
    {
-      MessageDigest digester = digesters.get();
-      digester.reset();
-
-      // This stuff makes sense other than they don't specify a character
-      // encoding which means this will likely break when dealing with
-      // characters outside the ASCII set.
-      digester.update(computeIPStamp(remoteAddress, timestamp));
-      digester.update(toBytes(secret));
-      digester.update(toBytes(uid));
-      digester.update(new byte[1]);
-      digester.update(toBytes(tokens));
-      digester.update(new byte[1]);
-      digester.update(toBytes(userData));
-
-      // These retards actually created a spec where they treat the digest bytes
-      // as a STRING (hex encoded no less where case matters!!!)
-      digester.update(toBytes(toHexString(digester.digest()).toLowerCase()));
-      byte[] digest = digester.digest(toBytes(secret));
-
-      return Arrays.equals(checksum, digest);
+      return new AuthTicket(checksum, ts, uid, tokens, data);
    }
 
 
 
-
-   public static AuthTicket parse(String ticket)
+   private static Set<String> tokens(String string)
    {
-      if(ticket.length() <= 40) throw new MalformedTicketException("invalid ticket length");
-      AuthTicket result = parsePrefix(ticket.substring(0, 40));
-      String[] parts = ticket.substring(40).split("!");
-      if(parts.length == 3) {
-         result.userData = parts[2].trim();
-         result.tokens = parts[1].trim();
-      } else if(parts.length == 2) {
-         result.userData = parts[1].trim();
-      } else {
-         throw new MalformedTicketException("ticket missing user data");
+      TreeSet<String> tokens = new TreeSet<>();
+      if(!Strings.isEmpty(string)) {
+         Collections.addAll(tokens, string.split("\\s*,\\s*"));
       }
-      result.uid = parts[0];
-      return result;
+      return tokens;
    }
-
-   private static AuthTicket parsePrefix(String prefix)
-   {
-      try {
-         return new AuthTicket(fromHexString(prefix.substring(0, 32)),
-                        Long.valueOf(prefix.substring(32), 16));
-      } catch(NumberFormatException nfe) {
-         throw new MalformedTicketException(nfe);
-      }
-   }
-
-
-
-
-
-   private static byte[] computeIPStamp(byte[] remoteAddress, long timestamp)
-   {
-      byte[] ipStamp = new byte[8];
-      if(remoteAddress != null && remoteAddress.length == 4) {
-         System.arraycopy(remoteAddress, 0, ipStamp, 0, 4);
-      }
-      ipStamp[4] = (byte) ((timestamp >>> 24) & 0xFF);
-      ipStamp[5] = (byte) ((timestamp >>> 16) & 0xFF);
-      ipStamp[6] = (byte) ((timestamp >>>  8) & 0xFF);
-      ipStamp[7] = (byte) ((timestamp) & 0xFF);
-
-      return ipStamp;
-   }
-
-   private static byte[] toBytes(String str)
-   {
-      // TODO What charset do they use to convert string data into byte data
-      // The C api uses unsigned characters.. Not sure what the digest algorithm does to them
-      // My guess is that the C code uses ASCII (aka 8 lower bits of each char) without any real encoding
-      // It doesn't make a difference here in the states where english basically translates the same
-      return (str != null) ? str.getBytes(StandardCharsets.UTF_8) : new byte[0];
-   }
-
 
 }
