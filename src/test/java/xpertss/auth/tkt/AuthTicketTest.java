@@ -53,8 +53,10 @@ public class AuthTicketTest {
       long current = (System.currentTimeMillis() / 1000) - 100;
       AuthTicket ticket = AuthTicket.create(checksum, current, "cfloersch", null, "Chris");
       assertFalse(ticket.isExpired(0));
-      assertFalse(ticket.isExpired(10));
+      assertTrue(ticket.isExpired(10));
+      assertTrue(ticket.isExpired(99));
       assertTrue(ticket.isExpired(100));
+      assertFalse(ticket.isExpired(101));
    }
 
    @Test

@@ -109,7 +109,7 @@ public class AuthTicket {
    {
       if(timeout <= 0) return false;
       long currentTime = System.currentTimeMillis() / 1000;
-      return timestamp + timeout >= currentTime;
+      return timestamp + timeout <= currentTime;
    }
 
 
