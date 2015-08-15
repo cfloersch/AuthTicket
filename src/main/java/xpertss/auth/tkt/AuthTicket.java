@@ -119,10 +119,10 @@ public class AuthTicket {
       builder.append(Strings.toLower(Bytes.toHexString(checksum)));
 
       byte[] ts = new byte[4];
-      ts[4] = (byte) ((timestamp >>> 24) & 0xFF);
-      ts[5] = (byte) ((timestamp >>> 16) & 0xFF);
-      ts[6] = (byte) ((timestamp >>>  8) & 0xFF);
-      ts[7] = (byte) ((timestamp) & 0xFF);
+      ts[0] = (byte) ((timestamp >>> 24) & 0xFF);
+      ts[1] = (byte) ((timestamp >>> 16) & 0xFF);
+      ts[2] = (byte) ((timestamp >>>  8) & 0xFF);
+      ts[3] = (byte) ((timestamp) & 0xFF);
       builder.append(Strings.toLower(Bytes.toHexString(ts)));
 
       builder.append(uid);
