@@ -87,7 +87,7 @@ public class ThirdBasicUseCaseTest {
             assertFalse(httpRequest.isUserInRole("Workbook+OVE"));
             assertFalse(httpRequest.isUserInRole("Simulcast"));
             assertEquals("guest", httpRequest.getRemoteUser());
-            assertNull(httpRequest.getAuthType());
+            assertEquals("AUTH_TKT", httpRequest.getAuthType());
             assertNull(httpRequest.getAttribute("TKTAuthUserData"));
             return null;
          }
@@ -117,7 +117,7 @@ public class ThirdBasicUseCaseTest {
             assertFalse(httpRequest.isUserInRole("Workbook+OVE"));
             assertFalse(httpRequest.isUserInRole("Simulcast"));
             assertEquals("guest", httpRequest.getRemoteUser());
-            assertNull(httpRequest.getAuthType());
+            assertEquals("AUTH_TKT", httpRequest.getAuthType());
             assertNull(httpRequest.getAttribute("TKTAuthUserData"));
             return null;
          }
@@ -148,7 +148,7 @@ public class ThirdBasicUseCaseTest {
             assertFalse(httpRequest.isUserInRole("Workbook+OVE"));
             assertFalse(httpRequest.isUserInRole("Simulcast"));
             assertEquals("guest", httpRequest.getRemoteUser());
-            assertNull(httpRequest.getAuthType());
+            assertEquals("AUTH_TKT", httpRequest.getAuthType());
             assertNull(httpRequest.getAttribute("TKTAuthUserData"));
             return null;
          }
@@ -179,7 +179,7 @@ public class ThirdBasicUseCaseTest {
             assertFalse(httpRequest.isUserInRole("Workbook+OVE"));
             assertFalse(httpRequest.isUserInRole("Simulcast"));
             assertEquals("guest", httpRequest.getRemoteUser());
-            assertNull(httpRequest.getAuthType());
+            assertEquals("AUTH_TKT", httpRequest.getAuthType());
             assertNull(httpRequest.getAttribute("TKTAuthUserData"));
             return null;
          }
@@ -211,7 +211,7 @@ public class ThirdBasicUseCaseTest {
             assertFalse(httpRequest.isUserInRole("Workbook+OVE"));
             assertFalse(httpRequest.isUserInRole("Simulcast"));
             assertEquals("guest", httpRequest.getRemoteUser());
-            assertNull(httpRequest.getAuthType());
+            assertEquals("AUTH_TKT", httpRequest.getAuthType());
             assertNull(httpRequest.getAttribute("TKTAuthUserData"));
             return null;
          }
@@ -245,7 +245,7 @@ public class ThirdBasicUseCaseTest {
             assertFalse(httpRequest.isUserInRole("Workbook+OVE"));
             assertFalse(httpRequest.isUserInRole("Simulcast"));
             assertEquals("guest", httpRequest.getRemoteUser());
-            assertNull(httpRequest.getAuthType());
+            assertEquals("AUTH_TKT", httpRequest.getAuthType());
             assertNull(httpRequest.getAttribute("TKTAuthUserData"));
             return null;
          }

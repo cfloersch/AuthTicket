@@ -14,24 +14,27 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Basic use case configures only the single authUrl, does not allow guests, does not
  * use tokens, and ignores IP addresses.
+ *
+ * This tests the TKTAuthBackArgName and TKTAuthCookieName config items
  */
-public class BasicUseCaseTest {
+public class SixthBasicUseCaseTest {
 
    private AuthTicketFilter objectUnderTest;
    private HttpServletResponse response;
@@ -55,6 +58,9 @@ public class BasicUseCaseTest {
       when(config.getInitParameter(eq("TKTAuthTimeout"))).thenReturn("0");    // No timeout
       when(config.getInitParameter(eq("TKTAuthLoginURL"))).thenReturn("https://www.manheim.com/login");
 
+      when(config.getInitParameter(eq("TKTAuthBackArgName"))).thenReturn("redirect");
+      when(config.getInitParameter(eq("TKTAuthCookieName"))).thenReturn("my_auth_tkt");
+
       objectUnderTest = new AuthTicketFilter();
       objectUnderTest.init(config);
 
@@ -72,7 +78,7 @@ public class BasicUseCaseTest {
 
       objectUnderTest.doFilter(request, response, chain);
 
-      verify(response, times(1)).sendRedirect(eq("https://www.manheim.com/login?back=" +
+      verify(response, times(1)).sendRedirect(eq("https://www.manheim.com/login?redirect=" +
          NetUtils.urlEncode("https://simulcast.manheim.com/simulcast/showBuyerSales.do?filter=AAA")));
       verify(chain, never()).doFilter(any(ServletRequest.class), any(ServletResponse.class));
 
@@ -90,7 +96,7 @@ public class BasicUseCaseTest {
 
       objectUnderTest.doFilter(request, response, chain);
 
-      verify(response, times(1)).sendRedirect(eq("https://www.manheim.com/login?back=" +
+      verify(response, times(1)).sendRedirect(eq("https://www.manheim.com/login?redirect=" +
          NetUtils.urlEncode("https://simulcast.manheim.com/simulcast/showBuyerSales.do?filter=AAA")));
       verify(chain, never()).doFilter(any(ServletRequest.class), any(ServletResponse.class));
    }
@@ -98,7 +104,7 @@ public class BasicUseCaseTest {
    @Test
    public void testEmptyCookie() throws ServletException, IOException
    {
-      when(cookie.getName()).thenReturn("auth_tkt");
+      when(cookie.getName()).thenReturn("my_auth_tkt");
       when(cookie.getValue()).thenReturn("");
 
       when(request.getCookies()).thenReturn(new Cookie[] { cookie });
@@ -108,7 +114,7 @@ public class BasicUseCaseTest {
 
       objectUnderTest.doFilter(request, response, chain);
 
-      verify(response, times(1)).sendRedirect(eq("https://www.manheim.com/login?back=" +
+      verify(response, times(1)).sendRedirect(eq("https://www.manheim.com/login?redirect=" +
          NetUtils.urlEncode("https://simulcast.manheim.com/simulcast/showBuyerSales.do?filter=AAA")));
       verify(chain, never()).doFilter(any(ServletRequest.class), any(ServletResponse.class));
    }
@@ -116,7 +122,7 @@ public class BasicUseCaseTest {
    @Test
    public void testMalformedCookie() throws ServletException, IOException
    {
-      when(cookie.getName()).thenReturn("auth_tkt");
+      when(cookie.getName()).thenReturn("my_auth_tkt");
       when(cookie.getValue()).thenReturn("00112233445566778899aabbccddeeff00000000cfloersch");
 
       when(request.getCookies()).thenReturn(new Cookie[] { cookie });
@@ -126,7 +132,7 @@ public class BasicUseCaseTest {
 
       objectUnderTest.doFilter(request, response, chain);
 
-      verify(response, times(1)).sendRedirect(eq("https://www.manheim.com/login?back=" +
+      verify(response, times(1)).sendRedirect(eq("https://www.manheim.com/login?redirect=" +
          NetUtils.urlEncode("https://simulcast.manheim.com/simulcast/showBuyerSales.do?filter=AAA")));
       verify(chain, never()).doFilter(any(ServletRequest.class), any(ServletResponse.class));
    }
@@ -134,7 +140,7 @@ public class BasicUseCaseTest {
    @Test
    public void testInvalidCookie() throws ServletException, IOException
    {
-      when(cookie.getName()).thenReturn("auth_tkt");
+      when(cookie.getName()).thenReturn("my_auth_tkt");
       when(cookie.getValue()).thenReturn("00112233445566778899aabbccddeeff00000000cfloersch!Chris");
 
       when(request.getCookies()).thenReturn(new Cookie[] { cookie });
@@ -144,33 +150,16 @@ public class BasicUseCaseTest {
 
       objectUnderTest.doFilter(request, response, chain);
 
-      verify(response, times(1)).sendRedirect(eq("https://www.manheim.com/login?back=" +
+      verify(response, times(1)).sendRedirect(eq("https://www.manheim.com/login?redirect=" +
          NetUtils.urlEncode("https://simulcast.manheim.com/simulcast/showBuyerSales.do?filter=AAA")));
       verify(chain, never()).doFilter(any(ServletRequest.class), any(ServletResponse.class));
    }
 
-   @Test
-   public void testInvalidCookieExplicitHostPort() throws ServletException, IOException
-   {
-      when(cookie.getName()).thenReturn("auth_tkt");
-      when(cookie.getValue()).thenReturn("00112233445566778899aabbccddeeff00000000cfloersch!Chris");
-
-      when(request.getCookies()).thenReturn(new Cookie[] { cookie });
-      when(request.getScheme()).thenReturn("https");
-      when(request.getHeader(eq("Host"))).thenReturn("simulcast.manheim.com:8080");
-
-
-      objectUnderTest.doFilter(request, response, chain);
-
-      verify(response, times(1)).sendRedirect(eq("https://www.manheim.com/login?back=" +
-         NetUtils.urlEncode("https://simulcast.manheim.com:8080/simulcast/showBuyerSales.do?filter=AAA")));
-      verify(chain, never()).doFilter(any(ServletRequest.class), any(ServletResponse.class));
-   }
 
    @Test
    public void testValidCase() throws ServletException, IOException
    {
-      when(cookie.getName()).thenReturn("auth_tkt");
+      when(cookie.getName()).thenReturn("my_auth_tkt");
       when(cookie.getValue()).thenReturn("e400af8d8448df14b22193dfdcebe22b55ce64a9cfloersch%21Workbook%2BOVE%21Chris%2BFloersch");
 
       when(request.getCookies()).thenReturn(new Cookie[] { cookie });
@@ -200,7 +189,7 @@ public class BasicUseCaseTest {
    @Test
    public void testModifiedCase() throws ServletException, IOException
    {
-      when(cookie.getName()).thenReturn("auth_tkt");
+      when(cookie.getName()).thenReturn("my_auth_tkt");
       when(cookie.getValue()).thenReturn("e400af8d8448df14b22193dfdcebe22b55ce64a9cfloersch%21Workbook%2BOVE%21Floersch");
 
       when(request.getCookies()).thenReturn(new Cookie[] { cookie });
@@ -209,7 +198,7 @@ public class BasicUseCaseTest {
 
       objectUnderTest.doFilter(request, response, chain);
 
-      verify(response, times(1)).sendRedirect(eq("https://www.manheim.com/login?back=" +
+      verify(response, times(1)).sendRedirect(eq("https://www.manheim.com/login?redirect=" +
          NetUtils.urlEncode("https://simulcast.manheim.com/simulcast/showBuyerSales.do?filter=AAA")));
       verify(chain, never()).doFilter(any(ServletRequest.class), any(ServletResponse.class));
    }

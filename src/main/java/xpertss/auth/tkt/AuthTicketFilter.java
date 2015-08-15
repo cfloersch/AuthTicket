@@ -322,6 +322,7 @@ public class AuthTicketFilter implements Filter {
       if(allowGuests) {
          HttpServletRequest proxy = Proximo.proxy(HttpServletRequest.class, request);
          doReturn("guest").when(proxy).getRemoteUser();
+         doReturn("AUTH_TKT").when(proxy).getAuthType(); // Apache module returns Basic
          doReturn(false).when(proxy).isUserInRole(anyString());
          chain.doFilter(proxy, response);
       } else {
