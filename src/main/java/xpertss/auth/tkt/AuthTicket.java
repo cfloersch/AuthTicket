@@ -138,6 +138,9 @@ public class AuthTicket {
 
    public static AuthTicket create(byte[] checksum, long ts, String uid, String tokens, String data)
    {
+      if(Strings.contains(uid, "!")) throw new IllegalArgumentException("uid contain invalid character: !");
+      if(Strings.contains(tokens, "!")) throw new IllegalArgumentException("tokens contain invalid character: !");
+      if(Strings.contains(data, "!")) throw new IllegalArgumentException("user data contain invalid character: !");
       return new AuthTicket(checksum, ts, uid, tokens, data);
    }
 
