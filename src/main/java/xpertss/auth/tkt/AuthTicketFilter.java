@@ -1,6 +1,7 @@
 package xpertss.auth.tkt;
 
 import xpertss.lang.Booleans;
+import xpertss.lang.Objects;
 import xpertss.lang.Strings;
 import xpertss.net.NetUtils;
 import xpertss.net.QueryBuilder;
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static xpertss.auth.tkt.DigestAlgorithm.*;
 import static xpertss.lang.Strings.ifEmpty;
@@ -361,10 +363,16 @@ public class AuthTicketFilter implements Filter {
    }
 
    private static URI parseUri(String uri, boolean required)
+      throws IllegalArgumentException
    {
       if(!Strings.isEmpty(uri)) {
          try {
-            return new URI(uri);
+            URI result = new URI(uri);
+            if(Objects.isOneOf(Strings.toLower(result.getScheme()), "https", "http")) {
+               return result;
+            } else {
+               throw new IllegalArgumentException(format("did not expect %s url", result.getScheme()));
+            }
          } catch(URISyntaxException e) {
             throw new IllegalArgumentException("malformed url", e);
          }
