@@ -1,8 +1,6 @@
 package xpertss.auth.tkt;
 
-import xpertss.auth.util.Time;
 import xpertss.lang.Booleans;
-import xpertss.lang.Enums;
 import xpertss.lang.Strings;
 import xpertss.net.NetUtils;
 import xpertss.net.QueryBuilder;
@@ -10,6 +8,7 @@ import xpertss.net.UrlBuilder;
 import xpertss.proximo.Answer;
 import xpertss.proximo.Invocation;
 import xpertss.proximo.Proximo;
+import xpertss.time.Duration;
 import xpertss.util.Sets;
 
 import javax.servlet.Filter;
@@ -233,7 +232,10 @@ public class AuthTicketFilter implements Filter {
       AuthTicketConfig config = new AuthTicketConfig(conf.getInitParameter("TKTAuthSecret"));
 
       config.setIgnoreIP(Booleans.parse(conf.getInitParameter("TKTAuthIgnoreIP")));
-      config.setTimeout(Time.parse(conf.getInitParameter("TKTAuthTimeout "), SECONDS));
+
+      if(!Strings.isEmpty(conf.getInitParameter("TKTAuthTimeout"))) {
+         config.setTimeout(Duration.parse(conf.getInitParameter("TKTAuthTimeout"), SECONDS));
+      }
 
       if(!Strings.isEmpty(conf.getInitParameter("TKTAuthCookieName"))) {
          config.setCookieName(conf.getInitParameter("TKTAuthCookieName"));
@@ -243,7 +245,9 @@ public class AuthTicketFilter implements Filter {
          config.setTokens(Sets.of(conf.getInitParameter("TKTAuthToken").split("\\s*,\\s*")));
       }
 
-      config.setDigestAlgorithm(Enums.valueOf(DigestAlgorithm.class, conf.getInitParameter("TKTAuthDigestType"), MD5));
+      if(!Strings.isEmpty(conf.getInitParameter("TKTAuthDigestType"))) {
+         config.setDigestAlgorithm(valueOf(conf.getInitParameter("TKTAuthDigestType")));
+      }
 
 
       authenticator = new AuthTicketAuthenticator(config);
@@ -303,7 +307,7 @@ public class AuthTicketFilter implements Filter {
             processFailure(httpRequest, httpResponse, chain);
          }
       } else {
-         chain.doFilter(request, response);
+         throw new ServletException("Only supports http");
       }
    }
 
@@ -318,6 +322,7 @@ public class AuthTicketFilter implements Filter {
       if(allowGuests) {
          HttpServletRequest proxy = Proximo.proxy(HttpServletRequest.class, request);
          doReturn("guest").when(proxy).getRemoteUser();
+         doReturn(false).when(proxy).isUserInRole(anyString());
          chain.doFilter(proxy, response);
       } else {
          response.sendRedirect(formatUrl(request, authUri));

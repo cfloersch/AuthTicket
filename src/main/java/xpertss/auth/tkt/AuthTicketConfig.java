@@ -1,7 +1,7 @@
 package xpertss.auth.tkt;
 
 
-import xpertss.lang.Objects;
+import xpertss.lang.Strings;
 
 import java.util.Collections;
 import java.util.Set;
@@ -21,7 +21,7 @@ public class AuthTicketConfig {
 
    public AuthTicketConfig(String secret)
    {
-      this.secret = Objects.notNull(secret, "secret");
+      this.secret = Strings.notEmpty(secret, "secret");
    }
 
    public String getSecret() {
