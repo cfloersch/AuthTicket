@@ -1,6 +1,8 @@
 package xpertss.auth.tkt;
 
 
+import xpertss.lang.Numbers;
+import xpertss.lang.Objects;
 import xpertss.lang.Strings;
 
 import java.util.Collections;
@@ -37,7 +39,7 @@ public class AuthTicketConfig {
 
    public void setDigestAlgorithm(DigestAlgorithm digestAlg)
    {
-      this.digestAlg = digestAlg;
+      this.digestAlg = Objects.notNull(digestAlg, "digestAlg");
    }
 
 
@@ -47,7 +49,7 @@ public class AuthTicketConfig {
    }
 
    public void setCookieName(String cookieName) {
-      this.cookieName = cookieName;
+      this.cookieName = Strings.notEmpty(cookieName, "cookieName");
    }
 
 
@@ -72,7 +74,7 @@ public class AuthTicketConfig {
     * Number of seconds to timeout the token
     */
    public void setTimeout(long timeout) {
-      this.timeout = timeout;
+      this.timeout = Numbers.gte(0L, timeout, "timeout must be positive");
    }
 
 
@@ -82,7 +84,7 @@ public class AuthTicketConfig {
    }
 
    public void setTokens(Set<String> tokens) {
-      this.tokens = tokens;
+      this.tokens = Objects.notNull(tokens, "tokens");
    }
 
 }
