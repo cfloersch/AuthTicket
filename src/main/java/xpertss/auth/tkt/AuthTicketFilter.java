@@ -23,6 +23,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -225,7 +227,7 @@ public class AuthTicketFilter implements Filter {
    private boolean allowGuests;
    private boolean guestFallback;
 
-
+   private Pattern pattern;
 
    @Override
    public void init(FilterConfig conf)
@@ -259,6 +261,7 @@ public class AuthTicketFilter implements Filter {
 
       backArgName = ifEmpty(conf.getInitParameter("TKTAuthBackArgName"), "back");
 
+      pattern = Pattern.compile(ifEmpty(conf.getInitParameter("TKTUrlPattern"), "^/.*"));
 
       authUri = parseUri(conf.getInitParameter("TKTAuthLoginURL"), true);
       timeoutUri = parseUri(conf.getInitParameter("TKTAuthTimeoutURL"), false);
@@ -274,39 +277,43 @@ public class AuthTicketFilter implements Filter {
       if(request instanceof HttpServletRequest && response instanceof HttpServletResponse) {
          HttpServletRequest httpRequest = (HttpServletRequest) request;
          HttpServletResponse httpResponse = (HttpServletResponse) response;
-         try {
-            final AuthTicket ticket = authenticator.authenticate(httpRequest);
-            HttpServletRequest proxy = Proximo.proxy(HttpServletRequest.class, httpRequest);
-            doReturn("AUTH_TKT").when(proxy).getAuthType(); // Apache module returns Basic
-            doReturn(ticket.getUsername()).when(proxy).getRemoteUser();
-            doAnswer(new Answer<Boolean>() {
-               @Override
-               public Boolean answer(Invocation invocation)
-                  throws Throwable
-               {
-                  return ticket.contains(invocation.getArgumentAt(0, String.class));
+         Matcher matcher = pattern.matcher(httpRequest.getRequestURI());
+         if(matcher.matches()) {
+            try {
+               final AuthTicket ticket = authenticator.authenticate(httpRequest);
+               HttpServletRequest proxy = Proximo.proxy(HttpServletRequest.class, httpRequest);
+               doReturn("AUTH_TKT").when(proxy).getAuthType(); // Apache module returns Basic
+               doReturn(ticket.getUsername()).when(proxy).getRemoteUser();
+               doAnswer(new Answer<Boolean>() {
+                  @Override
+                  public Boolean answer(Invocation invocation)
+                        throws Throwable {
+                     return ticket.contains(invocation.getArgumentAt(0, String.class));
+                  }
+               }).when(proxy).isUserInRole(anyString());
+               doReturn(ticket.getUserData()).when(proxy).getAttribute(eq("TKTAuthUserData"));
+               chain.doFilter(proxy, response);
+            } catch (ExpiredTicketException e) {
+               if (guestFallback && allowGuests) {
+                  processFailure(httpRequest, httpResponse, chain);
+               } else if (postUri != null && httpRequest.getMethod().equals("POST")) {
+                  httpResponse.sendRedirect(formatUrl(httpRequest, postUri));
+               } else if (timeoutUri != null) {
+                  httpResponse.sendRedirect(formatUrl(httpRequest, timeoutUri));
+               } else {
+                  httpResponse.sendRedirect(formatUrl(httpRequest, authUri));
                }
-            }).when(proxy).isUserInRole(anyString());
-            doReturn(ticket.getUserData()).when(proxy).getAttribute(eq("TKTAuthUserData"));
-            chain.doFilter(proxy, response);
-         } catch(ExpiredTicketException e) {
-            if(guestFallback && allowGuests) {
+            } catch (TokenMissingException e) {
+               if (unauthUri != null) {
+                  httpResponse.sendRedirect(formatUrl(httpRequest, unauthUri));
+               } else {
+                  httpResponse.sendRedirect(formatUrl(httpRequest, authUri));
+               }
+            } catch (Exception e) {
                processFailure(httpRequest, httpResponse, chain);
-            } else if(postUri != null && httpRequest.getMethod().equals("POST")) {
-               httpResponse.sendRedirect(formatUrl(httpRequest, postUri));
-            } else if(timeoutUri != null) {
-               httpResponse.sendRedirect(formatUrl(httpRequest, timeoutUri));
-            } else {
-               httpResponse.sendRedirect(formatUrl(httpRequest, authUri));
             }
-         } catch(TokenMissingException e) {
-            if(unauthUri != null) {
-               httpResponse.sendRedirect(formatUrl(httpRequest, unauthUri));
-            } else {
-               httpResponse.sendRedirect(formatUrl(httpRequest, authUri));
-            }
-         } catch(Exception e) {
-            processFailure(httpRequest, httpResponse, chain);
+         } else {
+            chain.doFilter(request, response);
          }
       } else {
          throw new ServletException("Only supports http");
