@@ -12,7 +12,7 @@ Simple Usage:
    </init-param>
    <init-param>
       <param-name>TKTUrlPattern</param-name>
-      <param-value>"^/simulcast/(?!pub/).*\.do.*</param-value>
+      <param-value>^/simulcast/(?!pub/).*\.do.*</param-value>
    </init-param>
    <init-param>
       <param-name>TKTAuthLoginURL</param-name>
