@@ -44,7 +44,8 @@ public class BasicUseCaseTest {
       throws ServletException
    {
       request = mock(HttpServletRequest.class);
-      when(request.getRequestURI()).thenReturn("/simulcast/showBuyerSales.do?filter=AAA");
+      when(request.getRequestURI()).thenReturn("/simulcast/showBuyerSales.do");
+      when(request.getQueryString()).thenReturn("filter=AAA");
       when(request.getRemoteAddr()).thenReturn("192.168.1.12");
 
       response = mock(HttpServletResponse.class);
