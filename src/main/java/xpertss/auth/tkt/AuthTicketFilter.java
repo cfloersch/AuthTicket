@@ -277,8 +277,7 @@ public class AuthTicketFilter implements Filter {
       if(request instanceof HttpServletRequest && response instanceof HttpServletResponse) {
          HttpServletRequest httpRequest = (HttpServletRequest) request;
          HttpServletResponse httpResponse = (HttpServletResponse) response;
-         Matcher matcher = pattern.matcher(httpRequest.getRequestURI());
-         if(matcher.matches()) {
+         if(matches(httpRequest)) {
             try {
                final AuthTicket ticket = authenticator.authenticate(httpRequest);
                HttpServletRequest proxy = Proximo.proxy(HttpServletRequest.class, httpRequest);
@@ -323,6 +322,13 @@ public class AuthTicketFilter implements Filter {
    @Override
    public void destroy()
    {
+   }
+
+   private boolean matches(HttpServletRequest request)
+   {
+      if(Strings.equal("OPTIONS", request.getMethod())) return false;
+      Matcher matcher = pattern.matcher(request.getRequestURI());
+      return matcher.matches();
    }
 
    private void processFailure(HttpServletRequest request, HttpServletResponse response, FilterChain chain)

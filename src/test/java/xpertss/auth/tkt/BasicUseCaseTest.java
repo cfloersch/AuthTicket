@@ -215,4 +215,13 @@ public class BasicUseCaseTest {
       verify(chain, never()).doFilter(any(ServletRequest.class), any(ServletResponse.class));
    }
 
+
+   @Test
+   public void testOptionsCase() throws ServletException, IOException
+   {
+      when(request.getMethod()).thenReturn("OPTIONS");
+      objectUnderTest.doFilter(request, response, chain);
+      verify(chain, times(1)).doFilter(any(ServletRequest.class), any(ServletResponse.class));
+   }
+
 }
