@@ -40,3 +40,14 @@ Then you'll need to map the filter like:
 
 The combination of filter mapping and TXTUrlPattern should give you a great deal
 of power when determining which paths should be filtered and which should not.
+
+To enable support for JQuery based ajax calls the X-Back-Url header may be passed as
+part of the request to specify an alternative back url to use from the current request.
+This ensures ModAuthTKT remains useful in the web 2.0 world where UI and Data are no
+longer bound together.
+
+```
+$.ajaxSetup({
+    headers: { 'X-Back-Url': document.location }
+});
+```

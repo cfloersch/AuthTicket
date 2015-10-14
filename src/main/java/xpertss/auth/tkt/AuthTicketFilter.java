@@ -345,11 +345,12 @@ public class AuthTicketFilter implements Filter {
       QueryBuilder query = QueryBuilder.create(target.getQuery());
       query.add(backArgName, currentRequestUri(request));
       return UrlBuilder.create(target).setQuery(query.build()).build();
-
    }
 
    private static String currentRequestUri(HttpServletRequest request)
    {
+      if(request.getHeader("X-Back-Url") != null) return request.getHeader("X-Back-Url");
+
       String scheme = ifEmpty(request.getHeader("X-Forwarded-Proto"), request.getScheme());
 
       UrlBuilder builder = UrlBuilder.create(scheme);
