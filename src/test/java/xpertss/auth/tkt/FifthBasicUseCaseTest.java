@@ -95,8 +95,9 @@ public class FifthBasicUseCaseTest {
 
       objectUnderTestAll.doFilter(request, response, chain);
 
-      verify(response, times(1)).sendRedirect(eq("https://www.manheim.com/login?type=auth&back=" +
-         NetUtils.urlEncode("https://simulcast.manheim.com/simulcast/showBuyerSales.do?filter=AAA")));
+      verify(response, times(1)).setHeader(eq("Location"), eq("https://www.manheim.com/login?type=auth&back=" +
+            NetUtils.urlEncode("https://simulcast.manheim.com/simulcast/showBuyerSales.do?filter=AAA")));
+      verify(response, times(1)).setStatus(eq(HttpServletResponse.SC_TEMPORARY_REDIRECT));
       verify(chain, never()).doFilter(any(ServletRequest.class), any(ServletResponse.class));
    }
 
@@ -177,8 +178,9 @@ public class FifthBasicUseCaseTest {
 
       objectUnderTestSimulcast.doFilter(request, response, chain);
 
-      verify(response, times(1)).sendRedirect(eq("https://www.manheim.com/login?type=role&back=" +
-         NetUtils.urlEncode("https://simulcast.manheim.com/simulcast/showBuyerSales.do?filter=AAA")));
+      verify(response, times(1)).setHeader(eq("Location"), eq("https://www.manheim.com/login?type=role&back=" +
+            NetUtils.urlEncode("https://simulcast.manheim.com/simulcast/showBuyerSales.do?filter=AAA")));
+      verify(response, times(1)).setStatus(eq(HttpServletResponse.SC_TEMPORARY_REDIRECT));
       verify(chain, never()).doFilter(any(ServletRequest.class), any(ServletResponse.class));
    }
 

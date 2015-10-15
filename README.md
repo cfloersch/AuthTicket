@@ -41,6 +41,8 @@ Then you'll need to map the filter like:
 The combination of filter mapping and TXTUrlPattern should give you a great deal
 of power when determining which paths should be filtered and which should not.
 
+##Web 2.0 Ajax Calls
+
 To enable support for JQuery based ajax calls the X-Back-Url header may be passed as
 part of the request to specify an alternative back url to use from the current request.
 This ensures ModAuthTKT remains useful in the web 2.0 world where UI and Data are no
@@ -51,3 +53,12 @@ $.ajaxSetup({
     headers: { 'X-Back-Url': document.location }
 });
 ```
+The X-Back-Url should be escaped if there is any possibility that its contents could
+not be used as a url query parameter.
+
+Because JQuery attempts to auto-follow 307 redirects this filter will respond with a
+403 Forbidden response code rather than a 307 if the X-Back-Url is specified. This
+will allow application developers to code their own handler for this response code
+which can redirect the main document location.
+
+The response will include a Location header regardless of its status 307 or 403.

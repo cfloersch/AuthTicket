@@ -296,17 +296,17 @@ public class AuthTicketFilter implements Filter {
                if (guestFallback && allowGuests) {
                   processFailure(httpRequest, httpResponse, chain);
                } else if (postUri != null && httpRequest.getMethod().equals("POST")) {
-                  httpResponse.sendRedirect(formatUrl(httpRequest, postUri));
+                  redirect(httpRequest, httpResponse, postUri);
                } else if (timeoutUri != null) {
-                  httpResponse.sendRedirect(formatUrl(httpRequest, timeoutUri));
+                  redirect(httpRequest, httpResponse, timeoutUri);
                } else {
-                  httpResponse.sendRedirect(formatUrl(httpRequest, authUri));
+                  redirect(httpRequest, httpResponse, authUri);
                }
             } catch (TokenMissingException e) {
                if (unauthUri != null) {
-                  httpResponse.sendRedirect(formatUrl(httpRequest, unauthUri));
+                  redirect(httpRequest, httpResponse, unauthUri);
                } else {
-                  httpResponse.sendRedirect(formatUrl(httpRequest, authUri));
+                  redirect(httpRequest, httpResponse, authUri);
                }
             } catch (Exception e) {
                processFailure(httpRequest, httpResponse, chain);
@@ -323,6 +323,7 @@ public class AuthTicketFilter implements Filter {
    public void destroy()
    {
    }
+
 
    private boolean matches(HttpServletRequest request)
    {
@@ -341,22 +342,28 @@ public class AuthTicketFilter implements Filter {
          doReturn(false).when(proxy).isUserInRole(anyString());
          chain.doFilter(proxy, response);
       } else {
-         response.sendRedirect(formatUrl(request, authUri));
+         redirect(request, response, authUri);
       }
    }
 
 
-   private String formatUrl(HttpServletRequest request, URI target)
+   private void redirect(HttpServletRequest request, HttpServletResponse response, URI target)
    {
       QueryBuilder query = QueryBuilder.create(target.getQuery());
-      query.add(backArgName, currentRequestUri(request));
-      return UrlBuilder.create(target).setQuery(query.build()).build();
+      if(request.getHeader("X-Back-Url") != null) {
+         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+         query.add(backArgName, request.getHeader("X-Back-Url"));
+      } else {
+         response.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
+         query.add(backArgName, currentRequestUri(request));
+      }
+      response.setHeader("Location", UrlBuilder.create(target).setQuery(query.build()).build());
    }
+
+
 
    private static String currentRequestUri(HttpServletRequest request)
    {
-      if(request.getHeader("X-Back-Url") != null) return request.getHeader("X-Back-Url");
-
       String scheme = ifEmpty(request.getHeader("X-Forwarded-Proto"), request.getScheme());
 
       UrlBuilder builder = UrlBuilder.create(scheme);
