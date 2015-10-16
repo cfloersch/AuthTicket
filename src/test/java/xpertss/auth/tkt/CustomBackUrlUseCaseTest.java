@@ -75,7 +75,8 @@ public class CustomBackUrlUseCaseTest {
 
       objectUnderTest.doFilter(request, response, chain);
 
-      verify(response, times(1)).setHeader(eq("Location"), eq("https://www.manheim.com/login?back=https://simulcast-ui.manheim.com/simulcast/web2page.html"));
+      verify(response, times(1)).setHeader(eq("Location"), eq("https://www.manheim.com/login?back=" +
+            NetUtils.urlEncode("https://simulcast-ui.manheim.com/simulcast/web2page.html")));
       verify(response, times(1)).setStatus(eq(HttpServletResponse.SC_FORBIDDEN));
       verify(chain, never()).doFilter(any(ServletRequest.class), any(ServletResponse.class));
    }

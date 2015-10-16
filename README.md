@@ -49,9 +49,16 @@ This ensures ModAuthTKT remains useful in the web 2.0 world where UI and Data ar
 longer bound together.
 
 ```
-$.ajaxSetup({
-    headers: { 'X-Back-Url': document.location }
-});
+    $.ajaxSetup({
+        headers: { 'X-Back-Url': window.location.href },
+        error: function (x, status, error) {
+            if (x.status == 403) {
+                window.location.href=x.getResponseHeader('Location');
+            } else {
+                alert("An error occurred: " + status + "nError: " + error);
+            }
+        }
+    });
 ```
 The X-Back-Url should be escaped if there is any possibility that its contents could
 not be used as a url query parameter.
@@ -62,3 +69,16 @@ will allow application developers to code their own handler for this response co
 which can redirect the main document location.
 
 The response will include a Location header regardless of its status 307 or 403.
+
+To enable the client's ability to access the Location header for a CORS requests the
+server must include the header
+
+```
+Access-Control-Expose-Headers: Location
+```
+
+Additionally, to set a X-Back-Url header the server must respond with a CORS header
+
+```
+Access-Control-Allow-Headers: x-requested-with, Content-Type, X-Back-Url
+```

@@ -352,10 +352,10 @@ public class AuthTicketFilter implements Filter {
       QueryBuilder query = QueryBuilder.create(target.getQuery());
       if(request.getHeader("X-Back-Url") != null) {
          response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-         query.add(backArgName, request.getHeader("X-Back-Url"));
+         query.add(backArgName, NetUtils.urlEncode(request.getHeader("X-Back-Url")));
       } else {
          response.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
-         query.add(backArgName, currentRequestUri(request));
+         query.add(backArgName, NetUtils.urlEncode(currentRequestUri(request)));
       }
       response.setHeader("Location", UrlBuilder.create(target).setQuery(query.build()).build());
    }
@@ -380,7 +380,7 @@ public class AuthTicketFilter implements Filter {
       builder.setPath(request.getRequestURI());
       builder.setQuery(request.getQueryString());
 
-      return NetUtils.urlEncode(builder.build());
+      return builder.build();
    }
 
    private static URI parseUri(String uri, boolean required)
