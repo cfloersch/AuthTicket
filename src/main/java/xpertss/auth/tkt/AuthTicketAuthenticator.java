@@ -71,7 +71,10 @@ public final class AuthTicketAuthenticator {
          throw new ExpiredTicketException();
       }
 
-      if(!verify(request, ticket)) {
+      String remoteIp = Strings.ifEmpty(request.getHeader("X-Forward-For"),
+                                          request.getRemoteAddr());
+
+      if(!verify(remoteIp, ticket)) {
          throw new InvalidTicketException();
       }
 
@@ -84,7 +87,7 @@ public final class AuthTicketAuthenticator {
 
 
 
-   private boolean verify(HttpServletRequest request, AuthTicket ticket)
+   public boolean verify(String remoteIp, AuthTicket ticket)
    {
       MessageDigest digester = digestAlg.digest();
       digester.reset();
@@ -92,7 +95,7 @@ public final class AuthTicketAuthenticator {
       // This stuff makes sense other than they don't specify a character
       // encoding which means this will likely break when dealing with
       // characters outside the ASCII set.
-      digester.update(computeIPStamp(request, ticket.getTimestamp()));
+      digester.update(computeIPStamp(remoteIp, ticket.getTimestamp()));
       digester.update(toBytes(config.getSecret()));
       digester.update(toBytes(ticket.getUsername()));
       digester.update(new byte[1]);
@@ -111,12 +114,10 @@ public final class AuthTicketAuthenticator {
    }
 
 
-   private byte[] computeIPStamp(HttpServletRequest request, long timestamp)
+   private byte[] computeIPStamp(String remoteIp, long timestamp)
    {
       byte[] ipStamp = new byte[8];
       if(!config.ignoreIP()) {
-         String remoteIp = Strings.ifEmpty(request.getHeader("X-Forward-For"),
-                                             request.getRemoteAddr());
          InetAddress remoteAddr = NetUtils.getInetAddress(remoteIp.split("\\s*,\\s*")[0]);
          if(remoteAddr == null) {
             throw new IllegalArgumentException("invalid remote ip: " + remoteIp);
@@ -152,8 +153,7 @@ public final class AuthTicketAuthenticator {
 
    private static String decode(Cookie cookie)
    {
-      String str = cookie.getValue();
-      // TODO Check for quotes???
+      String str = Strings.unquote(cookie.getValue());
 
       if(str.contains("!")) {
          return str;
