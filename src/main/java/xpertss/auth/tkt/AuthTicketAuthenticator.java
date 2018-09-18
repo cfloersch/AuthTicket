@@ -61,10 +61,18 @@ public final class AuthTicketAuthenticator {
    }
 
 
+   /**
+    * Complete implementation of the HttpServlet authentication algorithm.
+    *
+    * @param request The Http request
+    * @return A validated AuthTicket instance associated with the request
+    * @throws TicketNotFoundException if the ticket is not found or is expired
+    * @throws InvalidTicketException if the ticket is invalid or missing a required token
+    */
    public AuthTicket authenticate(HttpServletRequest request)
          throws TicketNotFoundException, InvalidTicketException
    {
-      Cookie cookie = getCookie(request.getCookies(), config.getCookieName());
+      Cookie cookie = Cookies.getCookie(request.getCookies(), config.getCookieName());
       AuthTicket ticket = digestAlg.parse(decode(cookie));
 
       if(ticket.isExpired(config.getTimeout())) {
@@ -86,7 +94,17 @@ public final class AuthTicketAuthenticator {
    }
 
 
-
+   /**
+    * Verify a given AuthTicket (and its optional IP).
+    * <p/>
+    * The supplied remote IP can be null if the authenticator is not
+    * configured to validate IP. You can also always submit "0.0.0.0"
+    * which has the same effect as disabling IP validation.
+    *
+    * @param remoteIp Optional remote IP of the calling client
+    * @param ticket The previously decoded Auth Ticket to validate
+    * @return true if the auth ticket can be verified, false otherwise.
+    */
    public boolean verify(String remoteIp, AuthTicket ticket)
    {
       MessageDigest digester = digestAlg.digest();
@@ -117,7 +135,7 @@ public final class AuthTicketAuthenticator {
    private byte[] computeIPStamp(String remoteIp, long timestamp)
    {
       byte[] ipStamp = new byte[8];
-      if(!config.ignoreIP()) {
+      if(!config.ignoreIP() && remoteIp != null) {
          InetAddress remoteAddr = NetUtils.getInetAddress(remoteIp.split("\\s*,\\s*")[0]);
          if(remoteAddr == null) {
             throw new IllegalArgumentException("invalid remote ip: " + remoteIp);
@@ -151,7 +169,7 @@ public final class AuthTicketAuthenticator {
 
 
 
-   private static String decode(Cookie cookie)
+   public static String decode(Cookie cookie)
    {
       String str = Strings.unquote(cookie.getValue());
 
@@ -167,14 +185,5 @@ public final class AuthTicketAuthenticator {
 
 
 
-   private static Cookie getCookie(Cookie[] cookies , String cookieName)
-   {
-      if(cookies != null && cookieName != null) {
-         for (Cookie cookie : cookies) {
-            if(cookieName.equals(cookie.getName())) return cookie;
-         }
-      }
-      throw new TicketNotFoundException();
-   }
 
 }

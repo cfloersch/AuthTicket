@@ -82,3 +82,41 @@ Additionally, to set a X-Back-Url header the server must respond with a CORS hea
 ```
 Access-Control-Allow-Headers: x-requested-with, Content-Type, X-Back-Url
 ```
+
+Programmatically
+----------------
+
+This code can also be used to programmatically parse or validate Auth Tickets.
+
+```java
+   AuthTicketConfig config = new AuthTicketConfig("our_secret");
+   Cookie cookie = Cookies.getCookie(request.getCookies(), config.getCookieName());
+   AuthTicketAuthenticator authenticator = new AuthTicketAuthenticator(config);
+   String authTktStr = AuthTicketAuthenticator.decode(cookie);
+   AuthTicket ticket = config.getDigestAlgorithm().parse(authTktStr);
+   if(!authenticator.verify(request.getRemoteAddr(), ticket)) {
+      throw new ForbiddenException();
+   }
+```
+
+Obviously, the above is simplified. The logic necessary to obtain the remote
+address is often more complex. The decoding step above strips and quoting,
+URL encoding, or Base64 encoding that may be applied to the cookie and returns
+a string.
+
+There are also a number of RuntimeExceptions that the above code can throw that
+you may wish to catch and deal with.
+
+In many cases we don't actually need to verify the auth ticket but we would like
+to access fields from within the auth ticket.
+
+```java
+   DigestAlgorithm digest = DigestAlgorithm.MD5;
+   AuthTicket ticket = digest.parse(authTktStr);
+   String remoteUser = ticket.getUsername();
+   String userData = ticket.getUserData();
+```
+
+In the above example we skip the configuration step and jump straight to our
+desired digest algorithm. We can use that digest to parse the auth ticket string
+into an AuthTicket instance.
