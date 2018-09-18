@@ -92,8 +92,7 @@ This code can also be used to programmatically to parse or validate Auth Tickets
    AuthTicketConfig config = new AuthTicketConfig("our_secret");
    Cookie cookie = Cookies.getCookie(request.getCookies(), config.getCookieName());
    AuthTicketAuthenticator authenticator = new AuthTicketAuthenticator(config);
-   String authTktStr = AuthTicketAuthenticator.decode(cookie);
-   AuthTicket ticket = config.getDigestAlgorithm().parse(authTktStr);
+   AuthTicket ticket = authenticator.parse(cookie);
    if(!authenticator.verify(request.getRemoteAddr(), ticket)) {
       throw new ForbiddenException();
    }

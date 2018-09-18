@@ -73,7 +73,9 @@ public final class AuthTicketAuthenticator {
          throws TicketNotFoundException, InvalidTicketException
    {
       Cookie cookie = Cookies.getCookie(request.getCookies(), config.getCookieName());
-      AuthTicket ticket = digestAlg.parse(decode(cookie));
+      if(cookie == null) throw new TicketNotFoundException();
+
+      AuthTicket ticket = parse(cookie);
 
       if(ticket.isExpired(config.getTimeout())) {
          throw new ExpiredTicketException();
@@ -91,6 +93,24 @@ public final class AuthTicketAuthenticator {
       }
 
       return ticket;
+   }
+
+
+   /**
+    * This will parse a Cookie into an AuthTicket using the current configuration.
+    * It will NOT validate the auth ticket.
+    * <p/>
+    * This will attempt to unquote, url decode, or base64 decode the cookie text
+    * before parsing it into an AuthTicket instance.
+    *
+    * @param cookie The Http Cookie to parse
+    * @return An AuthTicket instance representing the cookie data
+    * @throws MalformedTicketException if the cookie is not a properly structured auth ticket
+    * @throws NullPointerException if the supplied cookie is null
+    */
+   public AuthTicket parse(Cookie cookie) throws MalformedTicketException
+   {
+      return digestAlg.parse(decode(cookie));
    }
 
 
@@ -169,7 +189,7 @@ public final class AuthTicketAuthenticator {
 
 
 
-   public static String decode(Cookie cookie)
+   private static String decode(Cookie cookie)
    {
       String str = Strings.unquote(cookie.getValue());
 
