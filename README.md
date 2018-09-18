@@ -118,4 +118,6 @@ to access fields from within the auth ticket.
 
 In the above example we skip the configuration step and jump straight to our
 desired digest algorithm. We can use that digest to parse the auth ticket string
-into an AuthTicket instance.
+into an AuthTicket instance. However, it is the callers responsibility to remove
+any encoding that may have been applied to the cookie such as URL Encoding or
+BASE64 encoding as well as any quoting.
