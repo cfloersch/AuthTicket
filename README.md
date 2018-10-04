@@ -42,6 +42,30 @@ The combination of filter mapping and TXTUrlPattern should give you a great deal
 of power when determining which paths should be filtered and which should not.
 
 
+Accessing Auth Ticket Data
+--------------------------
+
+The filter will parse the Auth Ticket's properties which include username, tokens,
+and user data and make it available via the HttpServletRequest. They can be accessed
+as follows:
+
+```
+if("AUTH_TKT".equals(request.getAuthType())) {
+   String username = request.getRemoteUser();
+   String userdata = request.getAttribute("TKTAuthUserData");
+   if(request.isUserInRole("mytoken")) {
+      ... do something
+   }
+}
+```
+
+When the request was authenticated using this Auth Ticket filter the auth type will
+always be `AUTH_TKT` as opposed to Basic or Digest. The username can be accessed via
+the get remote user method. Tokens are treated as roles and can be queried but not
+retrieved using the is user in role method. Finally, the user data can be retrieved
+from the request attributes.
+
+
 Web 2.0 Ajax Calls
 ------------------
 
@@ -85,6 +109,7 @@ Additionally, to set a X-Back-Url header the server must respond with a CORS hea
 Access-Control-Allow-Headers: x-requested-with, Content-Type, X-Back-Url
 ```
 
+
 Programmatically
 ----------------
 
@@ -109,25 +134,3 @@ There are also a number of RuntimeExceptions that the above code can throw that
 you may wish to catch and deal with.
 
 
-Accessing Auth Ticket Data
---------------------------
-
-The filter will parse the Auth Ticket's properties which include username, tokens,
-and user data and make it available via the HttpServletRequest. They can be accessed
-as follows:
-
-```
-if("AUTH_TKT".equals(request.getAuthType())) {
-   String username = request.getRemoteUser();
-   String userdata = request.getAttribute("TKTAuthUserData");
-   if(request.isUserInRole("mytoken")) {
-      ... do something
-   }
-}
-```
-
-When the request was authenticated using this Auth Ticket filter the auth type will
-always be `AUTH_TKT` as opposed to Basic or Digest. The username can be accessed via
-the get remote user method. Tokens are treated as roles and can be queried but not
-retrieved using the is user in role method. Finally, the user data can be retrieved
-from the request attributes.
