@@ -106,7 +106,7 @@ public class AuthTicketAuthenticatorTest {
       when(cookie.getValue()).thenReturn("df612274bbd2b88a510b8d9fe9796af655ce6444cfloersch%21Workbook%2BOVE%21Chris%2BFloersch");
       when(request.getCookies()).thenReturn(new Cookie[] { cookie });
       objectUnderTest = new AuthTicketAuthenticator(config);
-      AuthTicket ticket = objectUnderTest.authenticate(request);
+      EncodedAuthTicket ticket = objectUnderTest.authenticate(request);
       assertEquals("cfloersch", ticket.getUsername());
       assertEquals("Chris+Floersch", ticket.getUserData());
       assertTrue(ticket.contains("Workbook+OVE"));
@@ -123,7 +123,7 @@ public class AuthTicketAuthenticatorTest {
       when(cookie.getValue()).thenReturn("e400af8d8448df14b22193dfdcebe22b55ce64a9cfloersch%21Workbook%2BOVE%21Chris%2BFloersch");
       when(request.getCookies()).thenReturn(new Cookie[] { cookie });
       objectUnderTest = new AuthTicketAuthenticator(config);
-      AuthTicket ticket = objectUnderTest.authenticate(request);
+      EncodedAuthTicket ticket = objectUnderTest.authenticate(request);
       assertEquals("cfloersch", ticket.getUsername());
       assertEquals("Chris+Floersch", ticket.getUserData());
       assertTrue(ticket.contains("Workbook+OVE"));
@@ -144,7 +144,7 @@ public class AuthTicketAuthenticatorTest {
       when(cookie.getValue()).thenReturn("e400af8d8448df14b22193dfdcebe22b55ce64a9cfloersch%21Workbook%2BOVE%21Chris%2BFloersch");
       when(request.getCookies()).thenReturn(new Cookie[] { cookie });
       objectUnderTest = new AuthTicketAuthenticator(config);
-      AuthTicket ticket = objectUnderTest.authenticate(request);
+      EncodedAuthTicket ticket = objectUnderTest.authenticate(request);
       assertEquals("cfloersch", ticket.getUsername());
       assertEquals("Chris+Floersch", ticket.getUserData());
       assertTrue(ticket.contains("Workbook+OVE"));

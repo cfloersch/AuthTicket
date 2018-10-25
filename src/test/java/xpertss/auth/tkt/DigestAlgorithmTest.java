@@ -47,7 +47,7 @@ public class DigestAlgorithmTest {
    @Test
    public void testMD5ParseMinimal()
    {
-      AuthTicket ticket = DigestAlgorithm.MD5.parse("00112233445566778899aabbccddeeffaabbccddcfloersch!");
+      EncodedAuthTicket ticket = DigestAlgorithm.MD5.parse("00112233445566778899aabbccddeeffaabbccddcfloersch!");
       assertEquals("cfloersch", ticket.getUsername());
       assertEquals(Long.valueOf("aabbccdd", 16).longValue(), ticket.getTimestamp());
       assertEquals("", ticket.getUserData());
@@ -57,7 +57,7 @@ public class DigestAlgorithmTest {
    @Test
    public void testMD5ParseEmptyTokensAndUserData()
    {
-      AuthTicket ticket = DigestAlgorithm.MD5.parse("00112233445566778899aabbccddeeffaabbccddcfloersch!!");
+      EncodedAuthTicket ticket = DigestAlgorithm.MD5.parse("00112233445566778899aabbccddeeffaabbccddcfloersch!!");
       assertEquals("cfloersch", ticket.getUsername());
       assertEquals(Long.valueOf("aabbccdd", 16).longValue(), ticket.getTimestamp());
       assertEquals("", ticket.getUserData());
@@ -67,7 +67,7 @@ public class DigestAlgorithmTest {
    @Test
    public void testMD5ParseEmptyUserData()
    {
-      AuthTicket ticket = DigestAlgorithm.MD5.parse("00112233445566778899aabbccddeeffaabbccddcfloersch!admin!");
+      EncodedAuthTicket ticket = DigestAlgorithm.MD5.parse("00112233445566778899aabbccddeeffaabbccddcfloersch!admin!");
       assertEquals("cfloersch", ticket.getUsername());
       assertEquals(Long.valueOf("aabbccdd", 16).longValue(), ticket.getTimestamp());
       assertEquals("", ticket.getUserData());
@@ -77,7 +77,7 @@ public class DigestAlgorithmTest {
    @Test
    public void testMD5ParseEmptyTokens()
    {
-      AuthTicket ticket = DigestAlgorithm.MD5.parse("00112233445566778899aabbccddeeffaabbccddcfloersch!!Chris");
+      EncodedAuthTicket ticket = DigestAlgorithm.MD5.parse("00112233445566778899aabbccddeeffaabbccddcfloersch!!Chris");
       assertEquals("cfloersch", ticket.getUsername());
       assertEquals(Long.valueOf("aabbccdd", 16).longValue(), ticket.getTimestamp());
       assertEquals("Chris", ticket.getUserData());
@@ -87,7 +87,7 @@ public class DigestAlgorithmTest {
    @Test
    public void testMD5Parse()
    {
-      AuthTicket ticket = DigestAlgorithm.MD5.parse("00112233445566778899aabbccddeeffaabbccddcfloersch!admin,engineer!Chris");
+      EncodedAuthTicket ticket = DigestAlgorithm.MD5.parse("00112233445566778899aabbccddeeffaabbccddcfloersch!admin,engineer!Chris");
       assertEquals("cfloersch", ticket.getUsername());
       assertEquals(Long.valueOf("aabbccdd", 16).longValue(), ticket.getTimestamp());
       assertEquals("Chris", ticket.getUserData());

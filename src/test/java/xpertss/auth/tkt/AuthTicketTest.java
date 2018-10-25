@@ -18,21 +18,21 @@ public class AuthTicketTest {
    @Test
    public void testContainsNullTokenSet()
    {
-      AuthTicket ticket = AuthTicket.create(checksum, 100, "cfloersch", null, "Chris");
+      EncodedAuthTicket ticket = EncodedAuthTicket.create(checksum, 100, "cfloersch", null, "Chris");
       assertFalse(ticket.contains("admin"));
    }
 
    @Test
    public void testContainsEmptyTokenSet()
    {
-      AuthTicket ticket = AuthTicket.create(checksum, 100, "cfloersch", "", "Chris");
+      EncodedAuthTicket ticket = EncodedAuthTicket.create(checksum, 100, "cfloersch", "", "Chris");
       assertFalse(ticket.contains("admin"));
    }
 
    @Test
    public void testContainsSingleEntryTokenSet()
    {
-      AuthTicket ticket = AuthTicket.create(checksum, 100, "cfloersch", "finance", "Chris");
+      EncodedAuthTicket ticket = EncodedAuthTicket.create(checksum, 100, "cfloersch", "finance", "Chris");
       assertFalse(ticket.contains("admin"));
       assertTrue(ticket.contains("finance"));
    }
@@ -40,7 +40,7 @@ public class AuthTicketTest {
    @Test
    public void testContainsMultiEntryTokenSet()
    {
-      AuthTicket ticket = AuthTicket.create(checksum, 100, "cfloersch", "finance,admin,config", "Chris");
+      EncodedAuthTicket ticket = EncodedAuthTicket.create(checksum, 100, "cfloersch", "finance,admin,config", "Chris");
       assertTrue(ticket.contains("admin"));
       assertTrue(ticket.contains("finance"));
       assertTrue(ticket.contains("config"));
@@ -51,7 +51,7 @@ public class AuthTicketTest {
    public void testIsExpired()
    {
       long current = (System.currentTimeMillis() / 1000) - 100;
-      AuthTicket ticket = AuthTicket.create(checksum, current, "cfloersch", null, "Chris");
+      EncodedAuthTicket ticket = EncodedAuthTicket.create(checksum, current, "cfloersch", null, "Chris");
       assertFalse(ticket.isExpired(0));
       assertTrue(ticket.isExpired(10));
       assertTrue(ticket.isExpired(99));
@@ -62,7 +62,7 @@ public class AuthTicketTest {
    @Test
    public void testContainsAnyMultiEntryTokenSet()
    {
-      AuthTicket ticket = AuthTicket.create(checksum, 100, "cfloersch", "finance,admin,config", "Chris");
+      EncodedAuthTicket ticket = EncodedAuthTicket.create(checksum, 100, "cfloersch", "finance,admin,config", "Chris");
       assertTrue(ticket.containsAny(Sets.of("admin", "finance")));
       assertTrue(ticket.containsAny(Sets.of("admin")));
       assertTrue(ticket.containsAny(Sets.of("finance")));
@@ -72,7 +72,7 @@ public class AuthTicketTest {
    @Test
    public void testContainsAnyNullTokenSet()
    {
-      AuthTicket ticket = AuthTicket.create(checksum, 100, "cfloersch", null, "Chris");
+      EncodedAuthTicket ticket = EncodedAuthTicket.create(checksum, 100, "cfloersch", null, "Chris");
       assertFalse(ticket.containsAny(Sets.of("admin", "finance")));
       assertFalse(ticket.containsAny(Sets.of("admin")));
       assertFalse(ticket.containsAny(Sets.of("finance")));
@@ -82,7 +82,7 @@ public class AuthTicketTest {
    @Test
    public void testContainsAnyEmptyTokenSet()
    {
-      AuthTicket ticket = AuthTicket.create(checksum, 100, "cfloersch", "", "Chris");
+      EncodedAuthTicket ticket = EncodedAuthTicket.create(checksum, 100, "cfloersch", "", "Chris");
       assertFalse(ticket.containsAny(Sets.of("admin", "finance")));
       assertFalse(ticket.containsAny(Sets.of("admin")));
       assertFalse(ticket.containsAny(Sets.of("finance")));
@@ -92,31 +92,31 @@ public class AuthTicketTest {
    @Test(expected = NullPointerException.class)
    public void testCreateNullChecksum()
    {
-      AuthTicket.create(null, 100, "cfloersch", "", "Chris");
+      EncodedAuthTicket.create(null, 100, "cfloersch", "", "Chris");
    }
 
    @Test(expected = IllegalArgumentException.class)
    public void testCreateEmptyChecksum()
    {
-      AuthTicket.create(new byte[0], 100, "cfloersch", "", "Chris");
+      EncodedAuthTicket.create(new byte[0], 100, "cfloersch", "", "Chris");
    }
 
    @Test(expected = NullPointerException.class)
    public void testCreateNullUserData()
    {
-      AuthTicket.create(checksum, 100, "cfloersch", "", null);
+      EncodedAuthTicket.create(checksum, 100, "cfloersch", "", null);
    }
 
    @Test(expected = IllegalArgumentException.class)
    public void testCreateNullUid()
    {
-      AuthTicket.create(checksum, 100, null, "", "Chris");
+      EncodedAuthTicket.create(checksum, 100, null, "", "Chris");
    }
 
    @Test(expected = IllegalArgumentException.class)
    public void testCreateEmptyUid()
    {
-      AuthTicket.create(checksum, 100, "", "", "Chris");
+      EncodedAuthTicket.create(checksum, 100, "", "", "Chris");
    }
 
 }

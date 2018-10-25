@@ -7,13 +7,8 @@ import xpertss.util.Base64;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.security.MessageDigest;
 import java.util.Arrays;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static xpertss.lang.Bytes.toHexString;
 
 /**
  * 2.1 If no authentication cookie is present in a request a TokenMissingException is thrown.
@@ -47,7 +42,7 @@ import static xpertss.lang.Bytes.toHexString;
 public final class AuthTicketAuthenticator {
 
    private final AuthTicketConfig config;
-   private final DigestAlgorithm digestAlg;
+   private final AuthTicketEncoder encoder;
 
    public AuthTicketAuthenticator(String secret)
    {
@@ -57,7 +52,7 @@ public final class AuthTicketAuthenticator {
    public AuthTicketAuthenticator(AuthTicketConfig config)
    {
       this.config = Objects.notNull(config);
-      this.digestAlg = config.getDigestAlgorithm();
+      this.encoder = new AuthTicketEncoder(config);
    }
 
 
@@ -110,7 +105,7 @@ public final class AuthTicketAuthenticator {
     */
    public AuthTicket parse(Cookie cookie) throws MalformedTicketException
    {
-      return digestAlg.parse(decode(cookie));
+      return config.getDigestAlgorithm().parse(decode(cookie));
    }
 
 
@@ -127,65 +122,11 @@ public final class AuthTicketAuthenticator {
     */
    public boolean verify(String remoteIp, AuthTicket ticket)
    {
-      MessageDigest digester = digestAlg.digest();
-      digester.reset();
-
-      // This stuff makes sense other than they don't specify a character
-      // encoding which means this will likely break when dealing with
-      // characters outside the ASCII set.
-      digester.update(computeIPStamp(remoteIp, ticket.getTimestamp()));
-      digester.update(toBytes(config.getSecret()));
-      digester.update(toBytes(ticket.getUsername()));
-      digester.update(new byte[1]);
-      digester.update(toBytes(ticket.getTokens()));
-      digester.update(new byte[1]);
-      digester.update(toBytes(ticket.getUserData()));
-
-      // These retards actually created a spec where they treat the digest bytes
-      // as a STRING (hex encoded no less where case matters!!!)
-      // I think string programmers should be run out of the industry on a rail..
-      digester.update(toBytes(toHexString(digester.digest()).toLowerCase()));
-      byte[] digest = digester.digest(toBytes(config.getSecret()));
-
-      return Arrays.equals(ticket.getChecksum(), digest);
-
+      AuthTicket encoded = encoder.encode(remoteIp, ticket);
+      return Arrays.equals(ticket.getChecksum(), encoded.getChecksum());
    }
 
 
-   private byte[] computeIPStamp(String remoteIp, long timestamp)
-   {
-      byte[] ipStamp = new byte[8];
-      if(!config.ignoreIP() && remoteIp != null) {
-         InetAddress remoteAddr = NetUtils.getInetAddress(remoteIp.split("\\s*,\\s*")[0]);
-         if(remoteAddr == null) {
-            throw new IllegalArgumentException("invalid remote ip: " + remoteIp);
-         } else if(remoteAddr instanceof Inet4Address) {
-            System.arraycopy(remoteAddr.getAddress(), 0, ipStamp, 0, 4);
-         }
-         // TODO What to do with IPv6 addresses???
-         // I guess those must not have existed when this spec was created??
-      }
-      ipStamp[4] = (byte) ((timestamp >>> 24) & 0xFF);
-      ipStamp[5] = (byte) ((timestamp >>> 16) & 0xFF);
-      ipStamp[6] = (byte) ((timestamp >>>  8) & 0xFF);
-      ipStamp[7] = (byte) ((timestamp) & 0xFF);
-
-      return ipStamp;
-   }
-
-
-
-
-
-   private static byte[] toBytes(String str)
-   {
-      // TODO What charset do they use to convert string data into byte data
-      // The C api uses unsigned characters.. Not sure what the digest algorithm does to them
-      // My guess is that the C code uses ASCII (aka 8 lower bits of each char) without any real encoding
-      // It doesn't make a difference here in the states where english basically translates the same
-      // God help anyone that uses a more sophisticated character set.
-      return (str != null) ? str.getBytes(UTF_8) : new byte[0];
-   }
 
 
 

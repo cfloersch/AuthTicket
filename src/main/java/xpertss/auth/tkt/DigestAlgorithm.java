@@ -27,7 +27,7 @@ public enum DigestAlgorithm {
    private int checksumSize;
    private String algName;
 
-   private DigestAlgorithm(int len, String algName)
+   DigestAlgorithm(int len, String algName)
    {
       this.checksumSize = len * 2;
       this.algName = algName;
@@ -47,9 +47,9 @@ public enum DigestAlgorithm {
 
          String[] parts = ticket.substring(checksumSize + 8).split("!", -3);
          if(parts.length == 3) {
-            return AuthTicket.create(checksum, ts, parts[0], parts[1], parts[2]);
+            return EncodedAuthTicket.create(checksum, ts, parts[0], parts[1], parts[2]);
          } else if(parts.length == 2) {
-            return AuthTicket.create(checksum, ts, parts[0], null, parts[1]);
+            return EncodedAuthTicket.create(checksum, ts, parts[0], null, parts[1]);
          } else {
             throw new MalformedTicketException("ticket missing user data");
          }
