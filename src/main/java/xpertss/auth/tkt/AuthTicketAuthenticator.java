@@ -3,11 +3,12 @@ package xpertss.auth.tkt;
 import xpertss.lang.Objects;
 import xpertss.lang.Strings;
 import xpertss.net.NetUtils;
-import xpertss.util.Base64;
+
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
+import java.util.Base64;
 
 
 /**
@@ -129,7 +130,7 @@ public final class AuthTicketAuthenticator {
 
 
 
-
+   // TODO Should this be part of DigestAlgorithm??
    private static String decode(Cookie cookie)
    {
       String str = Strings.unquote(cookie.getValue());
@@ -139,7 +140,7 @@ public final class AuthTicketAuthenticator {
       } else if(str.contains("%21")) {
          return NetUtils.urlDecode(str);
       } else {
-         return new String(Base64.basicDecoder().decode(str));
+         return new String(Base64.getDecoder().decode(str));
       }
    }
 
