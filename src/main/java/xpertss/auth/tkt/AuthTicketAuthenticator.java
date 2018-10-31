@@ -2,13 +2,11 @@ package xpertss.auth.tkt;
 
 import xpertss.lang.Objects;
 import xpertss.lang.Strings;
-import xpertss.net.NetUtils;
 
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
-import java.util.Base64;
 
 
 /**
