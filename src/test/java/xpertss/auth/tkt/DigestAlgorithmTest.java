@@ -11,12 +11,6 @@ import java.util.concurrent.FutureTask;
 
 import static org.junit.Assert.*;
 
-/**
- * Copyright 2015 XpertSoftware
- * <p/>
- * Created By: cfloersch
- * Date: 8/14/2015
- */
 public class DigestAlgorithmTest {
 
    @Test(expected = MalformedTicketException.class)
