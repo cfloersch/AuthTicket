@@ -8,6 +8,38 @@ package xpertss.auth.tkt;
 
 import java.util.Set;
 
+/**
+ * A basic interface for AuthTicket data and functionality.
+ * <p>
+ * From the specification
+ * <p><pre>
+ * 1.5 The basic format of the ticket / authentication cookie value is as follows:
+ *
+ *    ('+' is concatenation operation)
+ *
+ *    cookie := digest + hextimestamp + user_id + '!' + user_data
+ *
+ *    or if using tokens:
+ *
+ *    cookie := digest + hextimestamp + user_id + '!' + token_list + '!' + user_data
+ *
+ *    digest := MD5(digest0 + key)
+ *
+ *    digest0 := MD5(iptstamp + key + user_id + '\0' + token_list + '\0' + user_data)
+ *
+ *    iptstamp is a 8 bytes long byte array, bytes 0-3 are filled with client's IP address
+ *      as a binary number in network byte order, bytes 4-7 are filled with timestamp as a
+ *      binary number in network byte order.
+ *
+ *    hextimestamp is 8 character long hexadecimal number expressing timestamp used in
+ *      iptstamp.
+ *
+ *    token_list is an optional comma-separated list of access tokens for this user. This
+ *      list is checked if TKTAuthToken is set for a particular area.
+ *
+ *    user_data is optional
+ * </pre>
+ */
 public interface AuthTicket {
 
    /**
@@ -77,5 +109,12 @@ public interface AuthTicket {
     * @return the authentication checksum for this ticket
     */
    public byte[] getChecksum();
-   
+
+   /**
+    * Returns the ticket's data as a HTTP safe encoded string. Generally speaking
+    * this simply URL Encodes the data returned from {@link #toString()}.
+    *
+    * @return an HTTP header safe encoding of the ticket
+    */
+   public String getEncoded();
 }

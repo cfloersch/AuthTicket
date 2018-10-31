@@ -63,7 +63,8 @@ public final class AuthTicketAuthenticator {
     * @param request The Http request
     * @return A validated AuthTicket instance associated with the request
     * @throws TicketNotFoundException if the ticket is not found or is expired
-    * @throws InvalidTicketException if the ticket is invalid or missing a required token
+    * @throws InvalidTicketException if the ticket fails verification
+    * @throws TokenMissingException if the ticket is missing a required token
     */
    public AuthTicket authenticate(HttpServletRequest request)
          throws TicketNotFoundException, InvalidTicketException
@@ -71,7 +72,8 @@ public final class AuthTicketAuthenticator {
       Cookie cookie = Cookies.getCookie(request.getCookies(), config.getCookieName());
       if(cookie == null) throw new TicketNotFoundException();
 
-      AuthTicket ticket = parse(cookie);
+      DigestAlgorithm digest = config.getDigestAlgorithm();
+      AuthTicket ticket = digest.parse(cookie.getValue());
 
       if(ticket.isExpired(config.getTimeout())) {
          throw new ExpiredTicketException();
@@ -92,23 +94,6 @@ public final class AuthTicketAuthenticator {
    }
 
 
-   /**
-    * This will parse a Cookie into an AuthTicket using the current configuration.
-    * It will NOT validate the auth ticket.
-    * <p/>
-    * This will attempt to unquote, url decode, or base64 decode the cookie text
-    * before parsing it into an AuthTicket instance.
-    *
-    * @param cookie The Http Cookie to parse
-    * @return An AuthTicket instance representing the cookie data
-    * @throws MalformedTicketException if the cookie is not a properly structured auth ticket
-    * @throws NullPointerException if the supplied cookie is null
-    */
-   public AuthTicket parse(Cookie cookie) throws MalformedTicketException
-   {
-      return config.getDigestAlgorithm().parse(decode(cookie));
-   }
-
 
    /**
     * Verify a given AuthTicket (and its optional IP).
@@ -126,26 +111,5 @@ public final class AuthTicketAuthenticator {
       AuthTicket encoded = encoder.encode(remoteIp, ticket);
       return Arrays.equals(ticket.getChecksum(), encoded.getChecksum());
    }
-
-
-
-
-   // TODO Should this be part of DigestAlgorithm??
-   private static String decode(Cookie cookie)
-   {
-      String str = Strings.unquote(cookie.getValue());
-
-      if(str.contains("!")) {
-         return str;
-      } else if(str.contains("%21")) {
-         return NetUtils.urlDecode(str);
-      } else {
-         return new String(Base64.getDecoder().decode(str));
-      }
-   }
-
-
-
-
 
 }

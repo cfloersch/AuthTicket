@@ -17,11 +17,50 @@ import java.security.MessageDigest;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static xpertss.lang.Bytes.toHexString;
 
+/**
+ * A class capable of applying the Message Authentication Code (MAC) to a given
+ * AuthTicket.
+ * <p>
+ * From the specification
+ * <p><pre>
+ * 1.5 The basic format of the ticket / authentication cookie value is as follows:
+ *
+ *    ('+' is concatenation operation)
+ *
+ *    cookie := digest + hextimestamp + user_id + '!' + user_data
+ *
+ *    or if using tokens:
+ *
+ *    cookie := digest + hextimestamp + user_id + '!' + token_list + '!' + user_data
+ *
+ *    digest := MD5(digest0 + key)
+ *
+ *    digest0 := MD5(iptstamp + key + user_id + '\0' + token_list + '\0' + user_data)
+ *
+ *    iptstamp is a 8 bytes long byte array, bytes 0-3 are filled with client's IP address
+ *      as a binary number in network byte order, bytes 4-7 are filled with timestamp as a
+ *      binary number in network byte order.
+ *
+ *    hextimestamp is 8 character long hexadecimal number expressing timestamp used in
+ *      iptstamp.
+ *
+ *    token_list is an optional comma-separated list of access tokens for this user. This
+ *      list is checked if TKTAuthToken is set for a particular area.
+ *
+ *    user_data is optional
+ * </pre>
+ */
 public final class AuthTicketEncoder {
 
    private final AuthTicketConfig config;
    private final DigestAlgorithm digestAlg;
 
+   /**
+    * Create an instance of the Auth Ticket Encoder using the specified
+    * configuration.
+    *
+    * @param config The configuration to use for encoding
+    */
    public AuthTicketEncoder(AuthTicketConfig config)
    {
       this.config = Objects.notNull(config);
@@ -29,6 +68,19 @@ public final class AuthTicketEncoder {
    }
 
 
+   /**
+    * Encode the specified auth ticket with the optional remote IP.
+    * <p>
+    * This will return an AuthTicket instance with the encoded checksum
+    * that can be used to verify authenticity.
+    * <p>
+    * If the remote IP is {@code null} then remote IP encoding will be
+    * disabled regardless of the configuration.
+    *
+    * @param remoteIp - optional remote IP to encode into the auth ticket
+    * @param ticket - the ticket data to encode
+    * @return an immutable auth ticket with a computed checksum
+    */
    public AuthTicket encode(String remoteIp, AuthTicket ticket)
    {
       MessageDigest digester = digestAlg.digest();

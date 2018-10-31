@@ -6,15 +6,26 @@
  */
 package xpertss.auth.tkt;
 
+import xpertss.lang.Strings;
+import xpertss.net.NetUtils;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 import static xpertss.lang.Bytes.fromHexString;
 
+/**
+ * An enumeration of the digest algorithm's supported by the auth ticket specification.
+ */
 public enum DigestAlgorithm {
 
+
    MD5(16, "MD5"), SHA256(32, "SHA-256"), SHA512(64, "SHA-512");
+
+   private static final Pattern BASE64 = Pattern.compile("^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$");
 
    private ThreadLocal<MessageDigest> digesters = new ThreadLocal<MessageDigest>() {
       protected MessageDigest initialValue() {
@@ -33,13 +44,36 @@ public enum DigestAlgorithm {
       this.algName = algName;
    }
 
+   /**
+    * Return a {@link MessageDigest} instance that can be used to encode the Message
+    * Authentication Code (MAC) that is dedicated to the calling thread.
+    * <p>
+    * MessageDigest instances are expensive to create. As a result this enumeration
+    * will cache them in a thread local way to ensure that only a single thread is
+    * operating on a particular MessageDigest instance at a time.
+    *
+    * @return a thread safe message digest instance
+    */
    public MessageDigest digest()
    {
       return digesters.get();
    }
 
+   /**
+    * This will decode the ticket and parse it into an immutable AuthTicket instance
+    * based on the digest algorithm's output size.
+    * <p>
+    * Each digest produces a slightly different encoded result. This will throw an
+    * exception if the supplied encoded ticket was not encoded using the current
+    * digest algorithm.
+    *
+    * @param ticket - the raw ticket value
+    * @return a parsed immutable AuthTicket instance
+    * @throws MalformedTicketException if the supplied ticket is improperly encoded
+    */
    public AuthTicket parse(String ticket)
    {
+      ticket = decode(ticket);
       if(ticket.length() <= checksumSize + 8) throw new MalformedTicketException("invalid ticket length");
       try {
          byte[] checksum = fromHexString(ticket.substring(0, checksumSize));
@@ -56,6 +90,19 @@ public enum DigestAlgorithm {
       } catch(NumberFormatException nfe) {
          throw new MalformedTicketException(nfe);
       }
+   }
+
+   private static String decode(String cookie)
+   {
+      String str = Strings.unquote(cookie);
+      if(str.contains("!")) {
+         return str;
+      } else if(str.contains("%21")) {
+         return NetUtils.urlDecode(str);
+      } else if(BASE64.matcher(cookie).matches()) {
+         return new String(Base64.getDecoder().decode(str));
+      }
+      return cookie;
    }
 
 }

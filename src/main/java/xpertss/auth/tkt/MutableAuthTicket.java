@@ -9,42 +9,37 @@ package xpertss.auth.tkt;
 import xpertss.lang.Bytes;
 import xpertss.lang.Objects;
 import xpertss.lang.Strings;
+import xpertss.net.NetUtils;
 import xpertss.util.Sets;
 
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
- * A MutableTicket can be used to create AuthTickets. It represents the state of the
- * ticket before being encoded and as such allows tokens to be added and removed and
- * user data to be set and cleared.
+ * A MutableAuthTicket can be used to create AuthTickets. It represents the state of the
+ * ticket before being encoded and as such allows tokens to be added and removed and user
+ * data to be set and cleared.
+ * <p>
+ * A MutableAuthTicket has no Message Authentication Code (MAC) checksum and can not be
+ * used directly for authentication. You must encode the ticket before it can used:
  * <p>
  * <pre>
  *    {@code
- *       AuthTicketEncoder encoder = new AuthTicketEncoder(new AuthTicketConfig("our_secret"));
- *       MutableTicket ticket = new MutableTicket("jblow");
+ *       MutableAuthTicket ticket = new MutableAuthTicket("jblow");
  *       ticket.addToken("admin");
  *       ticket.setUserData("Joe Blow");
+ *
+ *       AuthTicketEncoder encoder = new AuthTicketEncoder(new AuthTicketConfig("our_secret"));
  *       AuthTicket encoded = encoder.encode(null, ticket);
- *       response.setCookie(new Cookie("auth_tkt", encoded.toString()));
+ *       response.addCookie(new Cookie("auth_tkt", encoded.getEncoded()));
  *    }
  * </pre>
- * <p>
- * In the above example the resulting cookie will probably not be compliant with
- * HTTP headers and will need to be URLEncoded first.
- * <p>
- * TODO improve the example above. Possibly add equals and hashcode methods
- * <p>
- * TODO Maybe add getEncoded method that will evaluate the user data and return
- * either a BASE64 encoded token or a URLEncoded token depending on whether the
- * user data includes any binary data.. At present it can't because it is of type
- * String.
  */
-public final class MutableTicket implements AuthTicket {
+public final class MutableAuthTicket implements AuthTicket {
 
    private final long timestamp = System.currentTimeMillis() / 1000;
-   private final Set<String> tokens = new LinkedHashSet<>();
+   private final Set<String> tokens = new TreeSet<>();
    private final String username;
 
    private String userData;
@@ -54,7 +49,7 @@ public final class MutableTicket implements AuthTicket {
     *
     * @param username - The user name of this ticket's principal
     */
-   public MutableTicket(String username)
+   public MutableAuthTicket(String username)
    {
       if(Strings.contains(username, "!")) throw new IllegalArgumentException("username contain invalid character: !");
       this.username = username;
@@ -166,6 +161,23 @@ public final class MutableTicket implements AuthTicket {
 
 
    @Override
+   public boolean equals(Object obj)
+   {
+      if(obj instanceof MutableAuthTicket) {
+         MutableAuthTicket o = (MutableAuthTicket) obj;
+         return Objects.equal(toString(), o.toString());
+      }
+      return false;
+   }
+
+   @Override
+   public int hashCode()
+   {
+      return Objects.hash(timestamp, username, tokens, userData);
+   }
+
+
+   @Override
    public String toString()
    {
       StringBuilder builder = new StringBuilder();
@@ -186,5 +198,11 @@ public final class MutableTicket implements AuthTicket {
       return builder.toString();
    }
 
+   @Override
+   public String getEncoded()
+   {
+      // TODO In what case would we use Base64 encoding?
+      return NetUtils.urlEncode(toString());
+   }
 
 }

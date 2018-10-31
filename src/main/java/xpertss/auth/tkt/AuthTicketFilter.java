@@ -7,7 +7,6 @@ import xpertss.net.NetUtils;
 import xpertss.net.QueryBuilder;
 import xpertss.net.UrlBuilder;
 import xpertss.proximo.Answer;
-import xpertss.proximo.Invocation;
 import xpertss.proximo.Proximo;
 import xpertss.time.Duration;
 import xpertss.util.Sets;
@@ -283,13 +282,7 @@ public class AuthTicketFilter implements Filter {
                HttpServletRequest proxy = Proximo.proxy(HttpServletRequest.class, httpRequest);
                doReturn("AUTH_TKT").when(proxy).getAuthType(); // Apache module returns Basic
                doReturn(ticket.getUsername()).when(proxy).getRemoteUser();
-               doAnswer(new Answer<Boolean>() {
-                  @Override
-                  public Boolean answer(Invocation invocation)
-                        throws Throwable {
-                     return ticket.contains(invocation.getArgumentAt(0, String.class));
-                  }
-               }).when(proxy).isUserInRole(anyString());
+               doAnswer((Answer<Boolean>) invocation -> ticket.contains(invocation.getArgumentAt(0, String.class))).when(proxy).isUserInRole(anyString());
                doReturn(ticket.getUserData()).when(proxy).getAttribute(eq("TKTAuthUserData"));
                chain.doFilter(proxy, response);
             } catch (ExpiredTicketException e) {

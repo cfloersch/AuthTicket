@@ -6,6 +6,7 @@ package xpertss.auth.tkt;
 import xpertss.lang.Bytes;
 import xpertss.lang.Objects;
 import xpertss.lang.Strings;
+import xpertss.net.NetUtils;
 import xpertss.util.Sets;
 
 import java.util.Collections;
@@ -42,19 +43,19 @@ import java.util.TreeSet;
  *    user_data is optional
  *
  */
-public final class EncodedAuthTicket implements AuthTicket {
+final class EncodedAuthTicket implements AuthTicket {
 
    private final long timestamp;
-   private final String uid;
+   private final String username;
    private final String userData;
    private final byte[] checksum;
    private final Set<String> tokens;
 
 
-   private EncodedAuthTicket(byte[] checksum, long ts, String uid, Set<String> tokens, String data)
+   private EncodedAuthTicket(byte[] checksum, long ts, String username, Set<String> tokens, String data)
    {
       this.userData = Objects.notNull(data, "data");
-      this.uid = Strings.notEmpty(uid, "uid");
+      this.username = Strings.notEmpty(username, "username");
       this.tokens = tokens;
       this.timestamp = ts;
       this.checksum = Bytes.notEmpty(checksum, "checksum");
@@ -63,7 +64,7 @@ public final class EncodedAuthTicket implements AuthTicket {
    @Override
    public String getUsername()
    {
-      return uid;
+      return username;
    }
 
 
@@ -120,6 +121,24 @@ public final class EncodedAuthTicket implements AuthTicket {
 
 
 
+
+   @Override
+   public boolean equals(Object obj)
+   {
+      if(obj instanceof EncodedAuthTicket) {
+         EncodedAuthTicket o = (EncodedAuthTicket) obj;
+         return Objects.equal(toString(), o.toString());
+      }
+      return false;
+   }
+
+   @Override
+   public int hashCode()
+   {
+      return Objects.hash(timestamp, username, tokens, userData);
+   }
+
+
    @Override
    public String toString()
    {
@@ -133,7 +152,7 @@ public final class EncodedAuthTicket implements AuthTicket {
       ts[3] = (byte) ((timestamp) & 0xFF);
       builder.append(Strings.toLower(Bytes.toHexString(ts)));
 
-      builder.append(uid);
+      builder.append(username);
       if(!tokens.isEmpty()) {
          builder.append("!").append(Strings.join(",", tokens));
       }
@@ -141,21 +160,21 @@ public final class EncodedAuthTicket implements AuthTicket {
       return builder.toString();
    }
 
-
+   @Override
+   public String getEncoded()
+   {
+      return NetUtils.urlEncode(toString());
+   }
 
 
    
    static EncodedAuthTicket create(byte[] checksum, long ts, String uid, String tokenData, String data)
    {
-      if(Strings.contains(uid, "!")) throw new IllegalArgumentException("uid contain invalid character: !");
-      if(Strings.contains(tokenData, "!")) throw new IllegalArgumentException("tokenData contain invalid character: !");
-      if(Strings.contains(data, "!")) throw new IllegalArgumentException("user data contain invalid character: !");
       return new EncodedAuthTicket(checksum, ts, uid, tokens(tokenData), data);
    }
 
    static EncodedAuthTicket create(AuthTicket ticket, byte[] checksum)
    {
-      // TODO Any sort of validation like above?
       return new EncodedAuthTicket(checksum, ticket.getTimestamp(), ticket.getUsername(), ticket.getTokens(), ticket.getUserData());
    }
 
