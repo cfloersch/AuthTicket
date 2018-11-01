@@ -105,7 +105,7 @@ public final class MutableAuthTicket implements AuthTicket {
    @Override
    public boolean containsAny(Set<String> tokens)
    {
-      return this.tokens.size() > 0 && !Sets.intersection(this.tokens, tokens).isEmpty();
+      return this.tokens.size() <= 0 || !Sets.intersection(this.tokens, tokens).isEmpty();
    }
 
 
