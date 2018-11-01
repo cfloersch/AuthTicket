@@ -175,13 +175,16 @@ import static xpertss.proximo.Proximo.doReturn;
  *    <dt>TKTAuthIgnoreIP  &lt;boolean&gt;</dt>
  *    <dd>Flag indicating that AuthTicketFilter should ignore the client IP address in
  *        authenticating tickets (your login script must support this as well, setting the
- *        client IP address to 0.0.0.0). This is often required out on the open internet,
- *        especially if you are using an HTTPS login page (as you should) and are dealing
- *        with more than a handful of users (the typical problem being transparent HTTP
- *        proxies at ISPs). Default: 'off' i.e. ticket is only valid from the originating
- *        IP address. e.g.
+ *        client IP address when creating the ticket).
  *        <p>
- *        <pre>TKTAuthIgnoreIP on</pre>
+ *        The typical problem with IP verification is that user's addresses may change during
+ *        their session either because of DHCP or because of transparent HTTP proxies at ISPs).
+ *        As a result it is generally advisable to not utilize IP verification. However, it can
+ *        be enabled where appropriate.
+ *        <p>
+ *        Default: 'on' i.e. ticket is valid from any originating IP address. e.g.
+ *        <p>
+ *        <pre>TKTAuthIgnoreIP off</pre>
  *    </dd>
  * </dl>
  * <p>
@@ -234,7 +237,10 @@ public class AuthTicketFilter implements Filter {
    {
       AuthTicketConfig config = new AuthTicketConfig(conf.getInitParameter("TKTAuthSecret"));
 
-      config.setIgnoreIP(Booleans.parse(conf.getInitParameter("TKTAuthIgnoreIP")));
+
+      if(!Strings.isEmpty(conf.getInitParameter("TKTAuthIgnoreIP"))) {
+         config.setIgnoreIP(Booleans.parse(conf.getInitParameter("TKTAuthIgnoreIP")));
+      }
 
       if(!Strings.isEmpty(conf.getInitParameter("TKTAuthTimeout"))) {
          config.setTimeout(Duration.parse(conf.getInitParameter("TKTAuthTimeout"), SECONDS));
