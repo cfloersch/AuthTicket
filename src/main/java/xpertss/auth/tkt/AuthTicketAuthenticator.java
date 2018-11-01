@@ -11,24 +11,24 @@ import java.util.Arrays;
 
 /**
  * 2.1 If no authentication cookie is present in a request a TokenMissingException is thrown.
- * <p/>
+ * <p>
  * 2.2 If authentication cookie is present and its format is invalid a MalformedTicketException
  *     is thrown.
- * <p/>
+ * <p>
  * 2.3 If authentication cookie is present and timeout checking is enabled, timestamp in the
  *     cookie is compared with the current time on the server. If the cookie has expired, a
  *     ExpiredTicketException is thrown.
- * <p/>
+ * <p>
  * 2.4 If authentication cookie is present and not expired, the MD5 checksum is validated. If
  *     the MD5 checksum fails validation a InvalidTicketException is thrown.
- * <p/>
+ * <p>
  * 2.5 If a TKTAuthToken is also required for this url/area, the user data tokens are scanned
  *     for the specified token. If the required token is not found, a TokenMissingException is
  *     thrown.
- * <p/>
+ * <p>
  * 2.6 Upon successful authentication the AuthTicket is returned giving access to the userId,
  *     userData, and tokens.
- * <p/>
+ * <p>
  * NOTES So it appears the mod_auth_tkt apache module will check to see if the cookie is
  * <ol>
  *    <li>Quoted - If so unquote it</li>
@@ -101,7 +101,7 @@ public final class AuthTicketAuthenticator {
 
    /**
     * Verify a given AuthTicket (and its optional IP).
-    * <p/>
+    * <p>
     * The supplied remote IP can be null if the authenticator is not
     * configured to validate IP. You can also always submit "0.0.0.0"
     * which has the same effect as disabling IP validation.
