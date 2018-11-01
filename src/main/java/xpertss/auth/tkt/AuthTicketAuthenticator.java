@@ -57,12 +57,18 @@ public final class AuthTicketAuthenticator {
 
    /**
     * Complete implementation of the HttpServlet authentication algorithm.
+    * <p>
+    * This includes accessing the ticket from the cookies, parsing the ticket,
+    * checking expiration, verifying the ticket against the caller's IP, if
+    * configured, and finally checking tokens.
     *
     * @param request The Http request
     * @return A validated AuthTicket instance associated with the request
-    * @throws TicketNotFoundException if the ticket is not found or is expired
+    * @throws TicketNotFoundException if the ticket is not found
+    * @throws ExpiredTicketException if the ticket is expired
     * @throws InvalidTicketException if the ticket fails verification
     * @throws TokenMissingException if the ticket is missing a required token
+    * @throws MalformedTicketException if the ticket is improperly encoded
     */
    public AuthTicket authenticate(HttpServletRequest request)
          throws TicketNotFoundException, InvalidTicketException

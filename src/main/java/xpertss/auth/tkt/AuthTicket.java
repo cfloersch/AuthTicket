@@ -87,6 +87,8 @@ public interface AuthTicket {
 
    /**
     * Returns {@code true} if this ticket contains any of the specified tokens.
+    * <p>
+    * Will return {@code true} if the supplied token set is empty.
     *
     * @param tokens - Set of tokens to check
     * @return {@code true} is this ticket contains any of the specified tokens
