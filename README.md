@@ -113,7 +113,7 @@ Access-Control-Allow-Headers: x-requested-with, Content-Type, X-Back-Url
 Programmatic Verification
 -------------------------
 
-This code can also be used to programmatically to parse or validate Auth Tickets.
+This code can also be used to programmatically parse or validate Auth Tickets.
 
 ```java
    AuthTicketConfig config = new AuthTicketConfig("our_secret");
