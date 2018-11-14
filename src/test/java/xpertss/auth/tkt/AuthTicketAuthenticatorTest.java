@@ -3,22 +3,18 @@ package xpertss.auth.tkt;
 import org.junit.Before;
 import org.junit.Test;
 import xpertss.net.NetUtils;
-import xpertss.util.Base64;
 import xpertss.util.Sets;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.Base64;
+
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-/**
- * Copyright 2015 XpertSoftware
- * <p/>
- * Created By: cfloersch
- * Date: 8/14/2015
- */
+
 public class AuthTicketAuthenticatorTest {
 
 
@@ -75,7 +71,7 @@ public class AuthTicketAuthenticatorTest {
    public void testBase64EncodedExpiredTicket()
    {
       when(cookie.getName()).thenReturn("auth_tkt");
-      when(cookie.getValue()).thenReturn(Base64.basicEncoder().encodeToString("00112233445566778899aabbccddeeff00000220cfloersch!data".getBytes()));
+      when(cookie.getValue()).thenReturn(Base64.getEncoder().encodeToString("00112233445566778899aabbccddeeff00000220cfloersch!data".getBytes()));
       when(request.getCookies()).thenReturn(new Cookie[] { cookie });
       objectUnderTest = new AuthTicketAuthenticator("some_random_secret_key");
       objectUnderTest.authenticate(request);
@@ -169,6 +165,7 @@ public class AuthTicketAuthenticatorTest {
    public void testSimpleInvalidTicketWithRemoteIP()
    {
       AuthTicketConfig config = new AuthTicketConfig("some_random_secret_key");
+      config.setIgnoreIP(false);
       config.setTimeout(0);
 
       when(cookie.getName()).thenReturn("auth_tkt");

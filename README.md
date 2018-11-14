@@ -110,16 +110,16 @@ Access-Control-Allow-Headers: x-requested-with, Content-Type, X-Back-Url
 ```
 
 
-Programmatically
-----------------
+Programmatic Verification
+-------------------------
 
-This code can also be used to programmatically to parse or validate Auth Tickets.
+This code can also be used to programmatically parse or validate Auth Tickets.
 
 ```java
    AuthTicketConfig config = new AuthTicketConfig("our_secret");
    Cookie cookie = Cookies.getCookie(request.getCookies(), config.getCookieName());
    AuthTicketAuthenticator authenticator = new AuthTicketAuthenticator(config);
-   AuthTicket ticket = authenticator.parse(cookie);
+   AuthTicket ticket = config.getDigestAlgorithm().parse(cookie);
    if(!authenticator.verify(request.getRemoteAddr(), ticket)) {
       throw new ForbiddenException();
    }
@@ -134,3 +134,29 @@ There are also a number of RuntimeExceptions that the above code can throw that
 you may wish to catch and deal with.
 
 
+Creating Auth Tickets
+---------------------
+
+```java
+   AuthTicketConfig config = new AuthTicketConfig("our_secret");
+   AuthTicketEncoder encoder = new AuthTicketEncoder(config);
+   String username = request.getParameter("username");
+   String password = request.getParameter("password");
+   if(myAuthMechanism.validate(username, password)) {
+      MutableAuthTicket ticket = new MutableAuthTicket(username);
+      for(String role : rolesFor(username)) {
+         ticket.addToken(role);
+      }
+      ticket.setUserData(getAuthorizations(username).toJson());
+      AuthTicket encoded = encoder.encode(null, ticket);
+      Cookie cookie = new Cookie(config.getCookieName(),
+                                 encoded.getEncoded());
+      response.addCookie(cookie);
+      httpResponse.sendRedirect(request.getParameter("back"));
+   }
+```
+
+The above is a very basic example of implementing a login service which creates
+an AuthTicket that can be returned to the user's browser as a Cookie. Obviously,
+you'll want to be more discriminating as to what domains and security levels the
+cookie is configured for and you'll need more error handling code.

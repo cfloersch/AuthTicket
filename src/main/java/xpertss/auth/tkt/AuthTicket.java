@@ -1,20 +1,18 @@
+/*
+ * Copyright 2018 XpertSoftware
+ *
+ * Created By: cfloersch
+ * Date: 10/25/2018
+ */
 package xpertss.auth.tkt;
 
-
-
-
-import xpertss.lang.Bytes;
-import xpertss.lang.Objects;
-import xpertss.lang.Strings;
-import xpertss.util.Sets;
-
-import java.util.Collections;
 import java.util.Set;
-import java.util.TreeSet;
-
 
 /**
- *
+ * A basic interface for AuthTicket data and functionality.
+ * <p>
+ * From the specification
+ * <p><pre>
  * 1.5 The basic format of the ticket / authentication cookie value is as follows:
  *
  *    ('+' is concatenation operation)
@@ -40,119 +38,85 @@ import java.util.TreeSet;
  *      list is checked if TKTAuthToken is set for a particular area.
  *
  *    user_data is optional
- *
+ * </pre>
  */
-public class AuthTicket {
+public interface AuthTicket {
+
+   /**
+    * Returns the username of the authenticated principal.
+    *
+    * @return the username of the authenticated principal
+    */
+   public String getUsername();
+
+   /**
+    * Returns the timestamp measured in seconds since EPOCH when this
+    * ticket was created. It will be encoded within the ticket and can
+    * be used to expire the ticket.
+    *
+    * @return the ticket creation timestamp in seconds since EPOCH.
+    */
+   public long getTimestamp();
+
+   /**
+    * Returns {@code true} if this ticket is expired based on the specified
+    * timeout in seconds.
+    *
+    * @param timeout The number of seconds the ticket should be considered valid
+    * @return {@code true} if the ticket is expired, {@code false} otherwise
+    */
+   public boolean isExpired(long timeout);
 
 
-   private Set<String> tokens;
+   /**
+    * Returns an immutable set of tokens associated with this ticket. Tokens
+    * are most often used as roles or scopes that can be used to limit access
+    * to certain parts of a web site or functionality within an application.
+    *
+    * @return an immutable set of tokens associated with this ticket.
+    */
+   public Set<String> getTokens();
 
-   private final byte[] checksum;
-   private final long timestamp;
-   private final String uid;
-   private final String userData;
-   private final String tokenData;
+   /**
+    * Returns {@code true} if this ticket contains the specified token.
+    *
+    * @param token - the token to check
+    * @return {@code true} if this ticket contains the specified token.
+    */
+   public boolean contains(String token);
 
-
-
-   private AuthTicket(byte[] checksum, long ts, String uid, String token, String data)
-   {
-      this.checksum = Bytes.notEmpty(checksum, "checksum");
-      this.userData = Objects.notNull(data, "data");
-      this.uid = Strings.notEmpty(uid, "uid");
-      this.tokens = tokens(token);
-      this.tokenData = token;
-      this.timestamp = ts;
-   }
-
-
-   public byte[] getChecksum()
-   {
-      return checksum.clone();
-   }
-
-   public long getTimestamp()
-   {
-      return timestamp;
-   }
-
-   public String getUsername()
-   {
-      return uid;
-   }
-
-   public String getTokens()
-   {
-      return tokenData;
-   }
+   /**
+    * Returns {@code true} if this ticket contains any of the specified tokens.
+    * <p>
+    * Will return {@code true} if the supplied token set is empty.
+    *
+    * @param tokens - Set of tokens to check
+    * @return {@code true} is this ticket contains any of the specified tokens
+    */
+   public boolean containsAny(Set<String> tokens);
 
 
-   public boolean contains(String token)
-   {
-      return tokens.contains(token);
-   }
+   /**
+    * Returns the application custom user data associated with this ticket.
+    *
+    * @return the user data associated with this ticket.
+    */
+   public String getUserData();
 
-   public boolean containsAny(Set<String> tokens)
-   {
-      return tokens.size() <= 0 || !Sets.intersection(this.tokens, tokens).isEmpty();
-   }
+   /**
+    * Returns the checksum for this ticket which can be used to validate its
+    * authenticity. Will return a zero length checksum if the ticket has not
+    * been encoded.
+    *
+    * @return the authentication checksum for this ticket
+    */
+   public byte[] getChecksum();
 
-
-   public String getUserData()
-   {
-      return userData;
-   }
-
-
-
-   public boolean isExpired(long timeout)
-   {
-      if(timeout <= 0) return false;
-      long currentTime = System.currentTimeMillis() / 1000;
-      return timestamp + timeout <= currentTime;
-   }
-
-
-   public String toString()
-   {
-      StringBuilder builder = new StringBuilder();
-      builder.append(Strings.toLower(Bytes.toHexString(checksum)));
-
-      byte[] ts = new byte[4];
-      ts[0] = (byte) ((timestamp >>> 24) & 0xFF);
-      ts[1] = (byte) ((timestamp >>> 16) & 0xFF);
-      ts[2] = (byte) ((timestamp >>>  8) & 0xFF);
-      ts[3] = (byte) ((timestamp) & 0xFF);
-      builder.append(Strings.toLower(Bytes.toHexString(ts)));
-
-      builder.append(uid);
-      if(!Strings.isEmpty(tokenData)) {
-         builder.append("!").append(tokenData);
-      }
-      builder.append("!").append(Strings.emptyIfNull(userData));
-      return builder.toString();
-   }
-
-
-
-
-   public static AuthTicket create(byte[] checksum, long ts, String uid, String tokens, String data)
-   {
-      if(Strings.contains(uid, "!")) throw new IllegalArgumentException("uid contain invalid character: !");
-      if(Strings.contains(tokens, "!")) throw new IllegalArgumentException("tokens contain invalid character: !");
-      if(Strings.contains(data, "!")) throw new IllegalArgumentException("user data contain invalid character: !");
-      return new AuthTicket(checksum, ts, uid, tokens, data);
-   }
-
-
-
-   private static Set<String> tokens(String string)
-   {
-      TreeSet<String> tokens = new TreeSet<>();
-      if(!Strings.isEmpty(string)) {
-         Collections.addAll(tokens, string.split("\\s*,\\s*"));
-      }
-      return tokens;
-   }
-
+   /**
+    * Returns the ticket's data as a HTTP safe encoded string. Generally speaking
+    * this simply URL Encodes the data returned from {@link #toString()}.
+    *
+    * @return an HTTP header safe encoding of the ticket
+    */
+   public String getEncoded();
 }
