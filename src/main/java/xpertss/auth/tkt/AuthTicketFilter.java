@@ -54,7 +54,7 @@ import static xpertss.proximo.Proximo.doReturn;
  *        periodically and should be the same used to create the ticket. The longer the
  *        better. e.g.
  *        <p>
- *        <pre>TKTAuthSecret  m2z#b&&2hd5zFev-b=Ham9_!=R74y-F44x&a6BnPEK!kQ&qz</pre>
+ *        <pre>TKTAuthSecret  {@code m2z#b&&2hd5zFev-b=Ham9_!=R74y-F44x&a6BnPEK!kQ&qz}</pre>
  *    </dd>
  *
  *    <dt>TKTAuthDigestType [ MD5 | SHA256 | SHA512 ]</dt>

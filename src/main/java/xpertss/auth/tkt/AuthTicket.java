@@ -114,7 +114,7 @@ public interface AuthTicket {
 
    /**
     * Returns the ticket's data as a HTTP safe encoded string. Generally speaking
-    * this simply URL Encodes the data returned from {@link #toString()}.
+    * this simply URL Encodes the data returned from {@link Object#toString()}.
     *
     * @return an HTTP header safe encoding of the ticket
     */
