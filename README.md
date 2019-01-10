@@ -5,16 +5,16 @@ Java Servlet Filter implementation of the Apache mod_auth_tkt SSO
 Maven Central Repository
 
 ```xml
-   <dependency>
-       <groupId>org.xpertss</groupId>
-       <artifactId>auth-tkt</artifactId>
-       <version>2.0.0</version>
-   </dependency>
+<dependency>
+    <groupId>org.xpertss</groupId>
+    <artifactId>auth-tkt</artifactId>
+    <version>2.0.0</version>
+</dependency>
 ```
 
 
 Simple Usage:
-```
+```xml
 <filter>
    <filter-name>AuthTicket</filter-name>
    <filter-class>xpertss.auth.tkt.AuthTicketFilter</filter-class>
