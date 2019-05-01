@@ -1,8 +1,6 @@
 package xpertss.auth.tkt;
 
 
-
-
 import xpertss.lang.Bytes;
 import xpertss.lang.Objects;
 import xpertss.lang.Strings;
@@ -10,8 +8,8 @@ import xpertss.net.NetUtils;
 import xpertss.util.Sets;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.TreeSet;
 
 
 /**
@@ -181,7 +179,7 @@ final class EncodedAuthTicket implements AuthTicket {
 
    private static Set<String> tokens(String string)
    {
-      TreeSet<String> tokens = new TreeSet<>();
+      Set<String> tokens = new LinkedHashSet<>();
       if(!Strings.isEmpty(string)) {
          Collections.addAll(tokens, string.split("\\s*,\\s*"));
       }
