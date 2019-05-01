@@ -13,8 +13,8 @@ import xpertss.net.NetUtils;
 import xpertss.util.Sets;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * A MutableAuthTicket can be used to create AuthTickets. It represents the state of the
@@ -39,7 +39,7 @@ import java.util.TreeSet;
 public final class MutableAuthTicket implements AuthTicket {
 
    private final long timestamp = System.currentTimeMillis() / 1000;
-   private final Set<String> tokens = new TreeSet<>();
+   private final Set<String> tokens = new LinkedHashSet<>();
    private final String username;
 
    private String userData;
