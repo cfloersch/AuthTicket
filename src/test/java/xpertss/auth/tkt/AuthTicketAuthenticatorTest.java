@@ -177,5 +177,42 @@ public class AuthTicketAuthenticatorTest {
    }
 
 
+   @Test
+   public void testBase64EncodedMultiToken()
+   {
+      AuthTicketConfig config = new AuthTicketConfig("some_random_secret_key");
+      config.setTimeout(0);
+      config.setIgnoreIP(true);
+
+      when(cookie.getName()).thenReturn("auth_tkt");
+      when(cookie.getValue()).thenReturn("ZDJmOWFiNjA1OTAyNjU1NmExYWY0OWRiZmFjMjQzOWI1Y2NhMDhmZmNvcnRpbiFhbHBoYXVzZXIsVmVoaWNsZStWYWx1YXRpb24rVG9vbCFDaHJpc3RvcGhlcitBeWQ=");
+      when(request.getCookies()).thenReturn(new Cookie[] { cookie });
+      objectUnderTest = new AuthTicketAuthenticator(config);
+      AuthTicket ticket = objectUnderTest.authenticate(request);
+      assertEquals("cortin", ticket.getUsername());
+      assertEquals("Christopher+Ayd", ticket.getUserData());
+      assertTrue(ticket.contains("alphauser"));
+      assertTrue(ticket.contains("Vehicle+Valuation+Tool"));
+   }
+
+   @Test
+   public void testUrlEncodedMultiToken()
+   {
+      AuthTicketConfig config = new AuthTicketConfig("some_random_secret_key");
+      config.setTimeout(0);
+      config.setIgnoreIP(true);
+
+      when(cookie.getName()).thenReturn("auth_tkt");
+      when(cookie.getValue()).thenReturn("0657e2f28abd6ef7bb63b0a5c84b834d5cc9f7f8cortin%21alphauser%2CVehicle%2BValuation%2BTool%21Christopher%2BAyd");
+      when(request.getCookies()).thenReturn(new Cookie[] { cookie });
+      objectUnderTest = new AuthTicketAuthenticator(config);
+      AuthTicket ticket = objectUnderTest.authenticate(request);
+      assertEquals("cortin", ticket.getUsername());
+      assertEquals("Christopher+Ayd", ticket.getUserData());
+      assertTrue(ticket.contains("alphauser"));
+      assertTrue(ticket.contains("Vehicle+Valuation+Tool"));
+   }
+
+
 
 }
