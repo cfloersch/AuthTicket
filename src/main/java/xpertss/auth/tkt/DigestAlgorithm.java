@@ -95,14 +95,16 @@ public enum DigestAlgorithm {
    private static String decode(String cookie)
    {
       String str = Strings.unquote(cookie);
-      if(str.contains("!")) {
-         return str;
-      } else if(str.contains("%21")) {
-         return NetUtils.urlDecode(str);
-      } else if(BASE64.matcher(cookie).matches()) {
-         return new String(Base64.getDecoder().decode(str));
+      while(!str.contains("!")) {
+         if(str.contains("%21")) {
+            str = NetUtils.urlDecode(str);
+         } else if(BASE64.matcher(str).matches()) {
+            str = new String(Base64.getDecoder().decode(str));
+         } else {
+            break;
+         }
       }
-      return cookie;
+      return str;
    }
 
 }
