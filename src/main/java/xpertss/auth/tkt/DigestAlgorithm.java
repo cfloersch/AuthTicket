@@ -101,7 +101,7 @@ public enum DigestAlgorithm {
          } else if(BASE64.matcher(str).matches()) {
             str = new String(Base64.getDecoder().decode(str));
          } else {
-            break;
+            throw new MalformedTicketException("unknown encoding");
          }
       }
       return str;
