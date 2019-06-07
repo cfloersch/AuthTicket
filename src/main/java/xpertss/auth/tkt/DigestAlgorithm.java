@@ -96,7 +96,7 @@ public enum DigestAlgorithm {
    {
       String str = Strings.unquote(cookie);
       while(!str.contains("!")) {
-         if(str.contains("%21")) {
+         if(str.contains("%21") || str.contains("%3D")) {
             str = NetUtils.urlDecode(str);
          } else if(BASE64.matcher(str).matches()) {
             str = new String(Base64.getDecoder().decode(str));
