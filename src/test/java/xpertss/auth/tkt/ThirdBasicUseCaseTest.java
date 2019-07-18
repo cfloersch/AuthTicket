@@ -274,7 +274,7 @@ public class ThirdBasicUseCaseTest {
 
       verify(response, times(1)).setHeader(eq("Location"), eq("https://www.manheim.com/login?timeout=1&back=" +
             NetUtils.urlEncode("https://simulcast.manheim.com/simulcast/showBuyerSales.do?filter=AAA")));
-      verify(response, times(1)).setStatus(eq(HttpServletResponse.SC_TEMPORARY_REDIRECT));
+      verify(response, times(1)).setStatus(eq(HttpServletResponse.SC_FOUND));
       verify(chain, never()).doFilter(any(ServletRequest.class), any(ServletResponse.class));
 
    }
@@ -294,7 +294,7 @@ public class ThirdBasicUseCaseTest {
 
       verify(response, times(1)).setHeader(eq("Location"), eq("https://www.manheim.com/login?timeout=2&back=" +
             NetUtils.urlEncode("https://simulcast.manheim.com/simulcast/showBuyerSales.do?filter=AAA")));
-      verify(response, times(1)).setStatus(eq(HttpServletResponse.SC_TEMPORARY_REDIRECT));
+      verify(response, times(1)).setStatus(eq(HttpServletResponse.SC_FOUND));
       verify(chain, never()).doFilter(any(ServletRequest.class), any(ServletResponse.class));
 
    }

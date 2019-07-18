@@ -57,7 +57,7 @@ public class AuthTicketRegexTest {
    {
       when(request.getRequestURI()).thenReturn("/listings/unassigned");
       objectUnderTest.doFilter(request, response, chain);
-      verify(response, times(1)).setStatus(eq(HttpServletResponse.SC_TEMPORARY_REDIRECT));
+      verify(response, times(1)).setStatus(eq(HttpServletResponse.SC_FOUND));
       verify(chain, never()).doFilter(eq(request), eq(response));
    }
 
