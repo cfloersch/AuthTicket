@@ -116,5 +116,29 @@ public class DigestAlgorithmTest {
       assertEquals("SHA-512", DigestAlgorithm.SHA512.digest().getAlgorithm());
    }
 
+   @Test
+   public void testManheimBase64EncodedTicket_hpatel()
+   {
+      AuthTicket ticket = DigestAlgorithm.MD5.parse("OTU1MmE1NWE2ZWY3NjJkMmViMjUxNjZmNTdjNDVhNzY1ZGY5MTRiNGhwYXRlbCFhbHBoYXVzZXIsTGFuZStOb3RpZmljYXRpb25zLFNvbmFyK1NlYXJjaCFIaW1hbnNodStQYXRlbA==");
+      assertEquals("hpatel", ticket.getUsername());
+   }
 
+   @Test
+   public void testManheimBase64EncodedTicket_hassan()
+   {
+      AuthTicket ticket = DigestAlgorithm.MD5.parse("ZGU2NWUxMTcxY2ZkMTdhNWMyY2NiNWI4YTQwMjUwNjc1ZGY5MTUzOWhqYWJhcnVsbGFoMSFMYW5lK05vdGlmaWNhdGlvbnMsU29uYXIrU2VhcmNoLFdvcmtib29rK09WRSFIYXNzYW4rSmFiYXJ1bGxhaA");
+      assertEquals("hjabarullah1", ticket.getUsername());
+   }
+
+   @Test(expected = MalformedTicketException.class)
+   public void testMalformedBase64EncodedTicket()
+   {
+      DigestAlgorithm.MD5.parse("ZGU2NWUxMTcxY2ZkMTdhNWMyY2NiNWI4YTQwMjUwNjc1ZGY5MTUzOWhqYWJhcnVsbGFoMSFMYW5lK05vdGlmaWNhdGlvbnMsU29uYXIrU2VhcmNoLFdvcmtib29rK09WRSFIYXNzYW4rSmFiYXJ1bGxha");
+   }
+
+   @Test(expected = MalformedTicketException.class)
+   public void testInvalidBase64EncodedTicket()
+   {
+      DigestAlgorithm.MD5.parse("ZGU2NWUxMTcxY2ZkMTdhNWMyY2NiNWI4YTQwMjUwNjc1ZGY5MTUzOWhqYWJhcnVsbGFoMSFMYW5lK05vdGlmaWNhdGlvbnMsU29uYXIrU2VhcmNoLFdvcmtib29rK09WRSFIYXNzYW4rSmFiYXJ1bGxha$");
+   }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2015 XpertSoftware
  * <p>
  * Created By: cfloersch
@@ -25,7 +25,7 @@ public enum DigestAlgorithm {
 
    MD5(16, "MD5"), SHA256(32, "SHA-256"), SHA512(64, "SHA-512");
 
-   private static final Pattern BASE64 = Pattern.compile("^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$");
+   private static final Pattern BASE64 = Pattern.compile("^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$");
 
    private ThreadLocal<MessageDigest> digesters = new ThreadLocal<MessageDigest>() {
       protected MessageDigest initialValue() {
@@ -98,13 +98,22 @@ public enum DigestAlgorithm {
       while(!str.contains("!")) {
          if(str.contains("%21") || str.contains("%3D")) {
             str = NetUtils.urlDecode(str);
-         } else if(BASE64.matcher(str).matches()) {
-            str = new String(Base64.getDecoder().decode(str));
          } else {
-            throw new MalformedTicketException("unknown encoding");
+            str = base64Decode(str);
+            if(Strings.isEmpty(str)) throw new MalformedTicketException("unknown encoding");
          }
       }
       return str;
+   }
+
+
+   private static String base64Decode(String str)
+   {
+      try {
+         return new String(Base64.getDecoder().decode(str));
+      } catch(Exception e) {
+         return null;
+      }
    }
 
 }
